@@ -1,0 +1,21 @@
+# Render Blueprint — static site, no build step.
+services:
+  - type: web
+    name: asimov-site
+    runtime: static
+    buildCommand: echo "static site, no build"
+    staticPublishPath: .
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /*.js
+        name: Cache-Control
+        value: public, max-age=3600
+      - path: /*.css
+        name: Cache-Control
+        value: public, max-age=3600

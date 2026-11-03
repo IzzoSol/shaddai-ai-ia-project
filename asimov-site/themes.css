@@ -1,0 +1,108 @@
+/* themes.css: colour themes over pulp.css. Set by html[data-theme]; "pulp" is the original newsprint look. */
+html[data-theme=neon],html[data-theme=nexus],html[data-theme=ultra]{color-scheme:dark;--carpet:#10131f}
+html[data-theme=neon]{--paper:#0a0a1c;--paper-2:#14122e;--ink:#f3f0ff;--ink-soft:#b3aede;--rust:#ff2bb4;--cobalt:#22e6ff;--gold:#ffd23f;--fx-a:#ff2bb4;--fx-b:#22e6ff}
+html[data-theme=nexus]{--paper:#050b06;--paper-2:#0c170c;--ink:#ecffe4;--ink-soft:#a4c79a;--rust:#76ff1a;--cobalt:#31d9b0;--gold:#d3ff3f;--fx-a:#76ff1a;--fx-b:#31d9b0}
+html[data-theme=ultra]{--paper:#12062b;--paper-2:#1f0b45;--ink:#fff3fb;--ink-soft:#cdb5ea;--rust:#ff7a18;--cobalt:#9d6bff;--gold:#ffe14d;--fx-a:#ff7a18;--fx-b:#9d6bff}
+
+/* Futuristic layer: dark themes only */
+html:not([data-theme=pulp]) body{
+  background-color:var(--paper);background-image:
+    radial-gradient(70% 50% at 85% 0,color-mix(in srgb,var(--fx-a) 22%,transparent),transparent 70%),
+    radial-gradient(60% 45% at 0 35%,color-mix(in srgb,var(--fx-b) 18%,transparent),transparent 70%),
+    linear-gradient(color-mix(in srgb,var(--fx-b) 7%,transparent) 1px,transparent 1px),
+    linear-gradient(90deg,color-mix(in srgb,var(--fx-b) 7%,transparent) 1px,transparent 1px);
+  background-size:auto,auto,44px 44px,44px 44px;background-attachment:fixed;color:var(--ink)}
+html:not([data-theme=pulp]) h1,html:not([data-theme=pulp]) h2{text-shadow:0 0 26px color-mix(in srgb,var(--fx-a) 45%,transparent)}
+html:not([data-theme=pulp]) section,html:not([data-theme=pulp]) main{background-color:transparent}
+html:not([data-theme=pulp]) .stand{background:color-mix(in srgb,var(--paper) 82%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid color-mix(in srgb,var(--fx-b) 40%,transparent)}
+html:not([data-theme=pulp]) a{text-shadow:none}
+
+/* Theme switcher */
+.theme-switch{display:inline-flex;gap:6px;align-items:center;margin-left:auto}
+.theme-switch button{width:24px;height:24px;border-radius:50%;border:2px solid transparent;padding:0;cursor:pointer;background:var(--s);box-shadow:inset 0 0 0 2px #0007;position:relative}
+.theme-switch button::after{content:'';position:absolute;inset:-10px}
+.theme-switch button[aria-checked=true]{border-color:#fff;box-shadow:0 0 10px var(--s)}
+.theme-switch button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+
+/* Your turnaround art replaces the old 3D cat */
+.cat-rig{position:absolute;left:50%;bottom:0;height:95%;aspect-ratio:484/1006;translate:-50% 0;filter:drop-shadow(0 18px 18px #0006);transform-origin:50% 100%;animation:cat-breathe 4.2s ease-in-out infinite}
+.whycat-cat .cat-rig img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill}
+.cat-body{-webkit-mask-image:linear-gradient(#0000 26%,#000 33%);mask-image:linear-gradient(#0000 26%,#000 33%)}
+.cat-head{position:absolute;inset:0;transform-origin:50% 36%;transform:translate(var(--hx,0px),var(--hy,0px)) rotate(var(--hr,0deg));will-change:transform}
+.cat-head img{-webkit-mask-image:linear-gradient(#000 33%,#0000 40%);mask-image:linear-gradient(#000 33%,#0000 40%)}
+.cat-head svg{position:absolute;inset:0;width:100%;height:100%}
+.cat-pupil{transform:translate(var(--px,0px),var(--py,0px))}
+@keyframes cat-breathe{50%{scale:1.008 1.014}}
+.fineprint{padding:6px 16px 54px;text-align:center;font:11px/1.5 var(--mono);color:var(--ink-soft);background:transparent}
+.fineprint summary{cursor:pointer;text-decoration:underline}
+.fineprint p{max-width:680px;margin:8px auto 0;text-align:left}
+.fineprint a{color:inherit}
+.peek-cover.cat-peek{object-fit:cover;object-position:50% 0}
+@media (prefers-reduced-motion:reduce){.cat-rig{animation:none}}
+
+/* Teardown section */
+.teardown-sec{padding:64px 0}
+.teardown-frame{position:relative;aspect-ratio:16/9;max-height:82vh;width:100%;overflow:hidden;background:#000;border:1px solid color-mix(in srgb,var(--cobalt) 60%,transparent);box-shadow:0 0 34px color-mix(in srgb,var(--rust) 26%,transparent)}
+.teardown-frame img,.teardown-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;object-fit:cover}
+.teardown-frame button{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);min-height:52px;padding:0 26px;font:600 16px var(--cond);letter-spacing:.08em;text-transform:uppercase;color:#fff;background:#d4140f;border:0;cursor:pointer;box-shadow:0 8px 28px #0008}
+.teardown-frame button:hover{filter:brightness(1.15)}
+.teardown-links{margin-top:12px;font:14px var(--mono)}
+.teardown-links a{color:inherit}
+@media (max-width:760px){.teardown-frame{aspect-ratio:3/4;max-height:none}}
+
+.cine-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#020306}
+
+/* Top bar reads correctly on dark themes */
+html:not([data-theme=pulp]) .stand,html:not([data-theme=pulp]) .stand a{color:var(--ink)}
+html:not([data-theme=pulp]) .stand a:hover{color:var(--gold)}
+.stand .wrap{flex-wrap:wrap}
+
+/* The cat peeks over the cover from behind it, so the cut edge of the art is hidden */
+.peek-cover.cat-peek{z-index:-1;top:-118px;width:150px;height:auto;right:14%}
+@media (max-width:700px){.peek-cover.cat-peek{top:-84px;width:104px}}
+
+/* Dark themes: panels that were cream paper become glass, so light text stays readable */
+html:not([data-theme=pulp]) .sheet,html:not([data-theme=pulp]) .card,html:not([data-theme=pulp]) .fcard{background:color-mix(in srgb,var(--paper-2) 92%,transparent);border-color:var(--cobalt);box-shadow:0 0 30px color-mix(in srgb,var(--fx-a) 22%,transparent);color:var(--ink)}
+html:not([data-theme=pulp]) .sheet :is(.tag,.intro,li,li div,small),html:not([data-theme=pulp]) .card :is(.sub,label),html:not([data-theme=pulp]) .fcard span,html:not([data-theme=pulp]) figcaption b{color:var(--ink)}
+html:not([data-theme=pulp]) .sheet small{color:var(--gold)}
+html:not([data-theme=pulp]) .sheet svg{filter:invert(1) hue-rotate(180deg)}
+html:not([data-theme=pulp]) .btn{background:var(--rust);border-color:var(--rust);color:#05060c;box-shadow:0 0 18px color-mix(in srgb,var(--rust) 45%,transparent)}
+html:not([data-theme=pulp]) .btn.ghost{background:transparent;border-color:var(--cobalt);color:var(--ink);box-shadow:none}
+html:not([data-theme=pulp]) .buy a{background:transparent;border-color:var(--cobalt);color:var(--ink)}
+html:not([data-theme=pulp]) .case-stamp{color:var(--gold);border-color:var(--gold)}
+html:not([data-theme=pulp]) :is(.replay,.folio-run b),html:not([data-theme=pulp]) footer a{color:var(--gold)}
+html:not([data-theme=pulp]) .stand b{color:var(--gold)}
+
+/* Bars and small labels on dark themes */
+html:not([data-theme=pulp]) .marquee{background:var(--paper-2);color:var(--ink)}
+html:not([data-theme=pulp]) .marquee .track span{color:var(--ink)}
+html:not([data-theme=pulp]) .folio-run{background:var(--paper-2);color:var(--ink)}
+html:not([data-theme=pulp]) footer{background:var(--paper-2);color:var(--ink)}
+html:not([data-theme=pulp]) footer span a,html:not([data-theme=pulp]) footer .replay{color:var(--gold)}
+html:not([data-theme=pulp]) .plate .buy a,html:not([data-theme=pulp]) .plate .buy a:first-child{background:transparent;border-color:var(--cobalt);color:var(--ink)}
+html:not([data-theme=pulp]) .case-stamp{background:var(--paper-2)}
+
+/* The ticker inside the top bar */
+html:not([data-theme=pulp]) .tape{background:var(--paper-2);color:var(--ink);border-top:1px solid color-mix(in srgb,var(--fx-a) 55%,transparent)}
+html:not([data-theme=pulp]) .tape b{color:var(--gold)}
+html:not([data-theme=pulp]) .tape :is(span,i){color:var(--ink)}
+html:not([data-theme=pulp]) .price span{color:#111}
+
+.cine-video{opacity:0;transition:opacity .25s}.cine-video.on{opacity:1}
+
+section[id]{scroll-margin-top:112px}
+@media (max-width:760px){section[id]{scroll-margin-top:165px}}
+.games-sec{padding:64px 0}
+.games{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.game{display:flex;flex-direction:column;gap:10px;padding:22px;min-height:210px;color:inherit;text-decoration:none;border:1px solid color-mix(in srgb,var(--cobalt) 60%,transparent);background:color-mix(in srgb,#000 22%,transparent)}
+.game:hover{transform:translateY(-3px);border-color:var(--gold)}
+.game b{font:400 30px/1.05 var(--display);text-transform:uppercase}
+.game span{font:16px/1.45 var(--mono)}
+.game em{margin-top:auto;font:600 15px var(--cond);font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.games-me{margin:0 0 14px;font:700 16px var(--mono);color:var(--gold)}
+.game-main{grid-column:1/-1;min-height:170px;border-color:var(--gold)}
+.game-main b{font-size:clamp(36px,6vw,58px)}
+
+@media (max-width:760px){.folio-run{display:none}}
+.pfp-frame{display:block;width:100%;height:760px;border:1px solid color-mix(in srgb,var(--cobalt) 60%,transparent);background:#07051a}
+@media (max-width:760px){.pfp-frame{height:1262px}}

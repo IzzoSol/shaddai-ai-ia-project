@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Press kit · $ASIMOV</title>
+<link rel="icon" href="data:,">
+<style>
+@font-face{font-family:Anton;src:url(fonts/anton-latin-400-normal.woff2) format('woff2');font-display:swap}
+@font-face{font-family:'Courier Prime';src:url(fonts/courier-prime-latin-400-normal.woff2) format('woff2');font-display:swap}
+*{box-sizing:border-box;margin:0}
+[hidden]{display:none!important}
+body{min-height:100vh;background:#07051a;color:#f4efff;font:16px/1.5 'Courier Prime','Courier New',monospace;background-image:linear-gradient(#35e0ff10 1px,transparent 1px),linear-gradient(90deg,#35e0ff10 1px,transparent 1px);background-size:60px 60px}
+a{color:#35e0ff}
+h1,h2{font-family:Anton,Impact,sans-serif;font-weight:400;text-transform:uppercase;line-height:1.05}
+:focus-visible{outline:2px solid #ffd34a;outline-offset:2px}
+#gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+#gate form{width:min(380px,100%);display:grid;gap:14px;text-align:center}
+#gate h1{font-size:56px;color:#ffd34a}
+#gate input{width:100%;min-height:56px;text-align:center;font:28px 'Courier Prime',monospace;letter-spacing:.4em;padding-left:.4em;color:#f4efff;background:#120d33;border:2px solid #35e0ff}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;font:600 14px 'Courier Prime',monospace;letter-spacing:.04em;text-decoration:none;color:#07051a;background:#ffd34a;border:0;cursor:pointer}
+.btn:hover{filter:brightness(1.12)}
+.btn.alt{background:none;color:#35e0ff;border:1px solid #35e0ff}
+#msg{min-height:24px;color:#ff7ac8}
+main{max-width:1120px;margin:0 auto;padding:40px 20px 80px}
+header h1{font-size:clamp(52px,9vw,96px);color:#ffd34a}
+header p{max-width:62ch;margin-top:10px;color:#cfc8f0}
+h2{font-size:34px;margin:52px 0 16px;padding-bottom:10px;border-bottom:1px solid #ffffff33}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.item{display:flex;flex-direction:column;gap:9px;padding:12px;background:#110c2e;border:1px solid #ffffff22}
+.thumb{display:flex;align-items:center;justify-content:center;height:190px;background:#05040f;overflow:hidden}
+.thumb video,.thumb img{max-width:100%;max-height:100%;display:block}
+.thumb video{width:100%;height:100%;object-fit:contain}
+.item b{font-size:15px;line-height:1.3}
+.item small{color:#b4abe0;font-size:13px;line-height:1.35}
+.item .btn{margin-top:auto}
+.cap{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px;margin-bottom:12px;background:#110c2e;border:1px solid #ffffff22}
+.cap p{flex:1 1 240px;min-width:0;overflow-wrap:anywhere}
+.rules{padding-left:20px;display:grid;gap:7px;max-width:76ch}
+.fine{margin-top:44px;font-size:13px;line-height:1.5;color:#b4abe0}
+.facts{display:grid;grid-template-columns:170px 1fr;gap:12px 20px;max-width:900px}.facts dt{font-family:Anton,Impact,sans-serif;font-size:21px;text-transform:uppercase;color:#ffd34a}.facts dd{margin:0}
+h3{font:400 22px Anton,Impact,sans-serif;text-transform:uppercase;color:#35e0ff;margin:24px 0 10px}
+.note{color:#cfc8f0;margin:0 0 14px;overflow-wrap:anywhere}.inl{margin-left:8px}.copyblock .note{margin-top:4px}
+.cards .thumb{height:auto;aspect-ratio:1}
+@media (max-width:600px){.facts{grid-template-columns:1fr;gap:2px}.facts dd{margin-bottom:14px}.inl{margin:8px 0 0;display:flex}}
+.shr{display:flex;flex-wrap:wrap;gap:6px;width:100%;margin-top:8px}.shr a,.shr button{display:inline-flex;align-items:center;justify-content:center;min-height:44px;min-width:60px;padding:0 12px;font:700 13px 'Courier Prime',monospace;color:#35e0ff;background:none;border:1px solid #35e0ff;text-decoration:none;cursor:pointer}.shr .x{background:#ffd34a;border-color:#ffd34a;color:#07051a}.shr .warn{color:#ff7ac8;align-self:center;font-size:12px}
+.sources li{margin-bottom:14px}.pnote{font-size:13px;color:#cfc8f0}
+</style>
+</head>
+<body>
+<section id="gate">
+  <form id="f">
+    <h1>Press</h1>
+    <label for="code">Enter the access code</label>
+    <input id="code" inputmode="numeric" autocomplete="off" maxlength="4" required>
+    <button class="btn" type="submit">Open press kit</button>
+    <div id="msg" role="status" aria-live="polite"></div>
+    <a href="index.html">← Back to $ASIMOV</a>
+  </form>
+</section>
+
+<main id="kit" hidden>
+  <header>
+    <h1>Press kit</h1>
+    <p>Videos, logos and captions, free to download and post. Please keep the fine print on anything you share. <a href="index.html">Back to the site</a></p>
+  </header>
+  <h2>The trailer: Russian, English subtitles</h2><video src="assets/films/asimov-trailer-russian-subtitled.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h2>Story trailer: English, British voice</h2><video src="assets/films/asimov-story-trailer.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h2>Promo: The Cat Index</h2><video src="press/clips/cat-index-promo.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<p><a href="cats.html">Open the Cat Index</a></p>
+<h2>Site tour: the whole site and every game</h2><video src="press/clips/site-tour.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h2>Clips to post (vertical)</h2><div style="display:flex;flex-wrap:wrap;gap:14px"><figure style="margin:0;width:220px"><video src="press/clips/story-opening-vertical.mp4" controls playsinline preload="metadata" style="width:100%;background:#000"></video><figcaption><a href="press/clips/story-opening-vertical.mp4" download>The setup: download</a></figcaption></figure><figure style="margin:0;width:220px"><video src="press/clips/story-message-vertical.mp4" controls playsinline preload="metadata" style="width:100%;background:#000"></video><figcaption><a href="press/clips/story-message-vertical.mp4" download>Mid-story moment: download</a></figcaption></figure><figure style="margin:0;width:220px"><video src="press/clips/story-ending-vertical.mp4" controls playsinline preload="metadata" style="width:100%;background:#000"></video><figcaption><a href="press/clips/story-ending-vertical.mp4" download>The ending: download</a></figcaption></figure><figure style="margin:0;width:220px"><video src="press/clips/cat-index-vertical.mp4" controls playsinline preload="metadata" style="width:100%;background:#000"></video><figcaption><a href="press/clips/cat-index-vertical.mp4" download>The Cat Index: download</a></figcaption></figure></div>
+<h2>Posts to share: 100 tweets</h2><p>Robots, cat history, the future, and keeping going. Copy, post, repeat.</p><a class="kit-dl" href="press/tweets.txt" download="asimov-100-tweets.txt">Download the 100 tweets</a>
+<h2>Demo / behind the scenes: earlier cuts</h2>
+<h3>English, British voice</h3><video src="assets/films/asimov-episode-1-british.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h3>English, robotic voice</h3><video src="assets/films/asimov-episode-1-robot.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h3>Russian</h3><video src="assets/films/asimov-episode-1-russian.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h3>Japanese</h3><video src="assets/films/asimov-episode-1-japanese.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h3>Spanish</h3><video src="assets/films/asimov-episode-1-spanish.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h2>Trailer</h2><h3>Color</h3><video src="games/asimov-breach/trailer.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h3>Black and white</h3><video src="press/asimov-trailer-demo-bw.mp4" controls playsinline preload="metadata" style="display:block;width:100%;max-width:960px;background:#000;margin-bottom:8px"></video>
+<h2>Commercials</h2><div class="grid" id="ads"></div>
+  <h2>More videos</h2><div class="grid" id="vids"></div>
+  <h2>Logos and images</h2><div class="grid" id="imgs"></div>
+  <h2>Captions</h2><div id="caps"></div>
+<!-- more --><h2>The story in 60 seconds</h2><dl class="facts"><dt>The token</dt><dd>$ASIMOV is a meme token on Solana, launched on StonkFun and paired against NVDAx. It has no intrinsic value and no roadmap of moons.</dd><dt>The pair</dt><dd>NVDAx is a tokenized NVIDIA share issued by Backed Finance, backed 1:1 by shares held by a custodian. $ASIMOV is not an NVIDIA share and isn’t backed by one. NVDAx isn’t available to US persons.</dd><dt>The author</dt><dd>Isaac Asimov’s “Liar!” (1941) contains the first known use of “robotics.” “Runaround” (1942) set out the Three Laws. His robot stories were collected as I, Robot in 1950.</dd><dt>The cat</dt><dd>In I, Robot (2004), the witness at Dr. Lanning’s house is a tabby-and-white cat with a red collar. The film never says its name; the trivia files say Asimov. Isaac Asimov loved cats too, and co-edited Magicats! (1984) and Magicats II (1991).</dd><dt>The Nexus Bots</dt><dd>R5 (pearl white, green visor) and R7 (metallic green, glowing circuit lines) are fictional robots from our animated series ASIMOV.</dd><dt>The real robot</dt><dd>Asimov 1 is Menlo Research’s open-source humanoid: 1.2 m, 35 kg, 25 actuated joints, released under CERN-OHL-S-2.0. We show it in our teardown. Menlo isn’t affiliated with us and hasn’t endorsed this.</dd></dl><h2>Official contract address</h2><div class="copyblock"><div class="cap"><p>DaFB3rooEtLMoQh9P8xAkSUeJ8utuh3VBfwnZAaysCXC</p><button class="btn alt" type="button">Copy</button></div><p class="note">Only trust the contract address on the site and the official X account. No team member will ever message you first. Nobody legitimate will ever ask for your seed phrase.</p></div><h2>Post cards</h2><p class="note">Square 1080 × 1080 images, ready to post. <a class="btn alt inl" href="press/asimov-post-cards.zip" download>Download all as ZIP</a></p><div class="grid cards" id="cards"></div><h2>Ready-made thread</h2><div class="copyblock" id="thread"><div class="cap"><p>1/ In 1942 Isaac Asimov wrote three laws for robots that didn’t exist yet. Today NVIDIA builds the chips that train them. $ASIMOV is the joke that sits between the two.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>2/ The fiction: $ASIMOV, a meme token on Solana. The fact: NVDAx, a token backed 1:1 by NVIDIA shares. One pool, one pair. To buy the fiction you spend the fact.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>3/ To be clear: $ASIMOV is not an NVIDIA share, isn’t backed by one, and isn’t affiliated with NVIDIA.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>4/ Why a cat? In I, Robot (2004) the only witness is a tabby in a red collar, reportedly named Asimov. And Isaac Asimov loved cats enough to co-edit two anthologies about them.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>5/ We wrote seven Laws of Tokenomics. Law 3: a wallet must protect its own existence, as long as that does not mean typing its seed phrase into any website.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>6/ There’s also a robot teardown you can play with, a screening room, and a shelf of the original books. Law 7 says to consider buying the book first.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>7/ Meme token. No intrinsic value, no promises, not financial advice. Tokens can go to zero. Only trust the contract address on our site and official X account.</p><button class="btn alt" type="button">Copy</button></div></div><h2>Post ideas</h2><div class="copyblock"><h3>The Laws of Tokenomics: post one a day</h3><div class="cap"><p>Law 1: A holder may not ape in with money they cannot afford to lose or, through inaction, skip reading the contract address.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Law 2: A holder must obey the chart, except where the chart was drawn by a stranger in your DMs.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Law 3: A wallet must protect its own existence, as long as that does not mean typing its seed phrase into any website.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Law 4: A robot must never confuse a meme token with a share of NVIDIA.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Law 5: Every price must come from a live source, or not be shown at all.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Law 6: A token page may promise jokes, robots and good books, and nothing else.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Law 7: Before buying the token, a holder should consider buying the book.</p><button class="btn alt" type="button">Copy</button></div><h3>Asimov facts</h3><div class="cap"><p>The word “robotics” first appears in a 1941 Isaac Asimov story, “Liar!” He wrote the Three Laws a year later, for robots that didn’t exist yet.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Isaac Asimov wrote three laws to keep robots from hurting people. We wrote seven to keep holders from hurting themselves.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Before you buy the token, consider buying the book. Start with I, Robot (1950).</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Foundation follows Hari Seldon, whose psychohistory predicts the fall of a galactic empire. Worth your weekend more than any chart.</p><button class="btn alt" type="button">Copy</button></div><h3>Cats of science fiction</h3><div class="cap"><p>In I, Robot (2004), the only witness is a tabby-and-white cat. The film never names it. The trivia files say Asimov.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Isaac Asimov co-edited two cat anthologies: Magicats! and Magicats II. The robot guy was a cat guy.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Heinlein’s cat Pixie searched every door in the house for one that led away from the snow. It became The Door into Summer.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Ray Bradbury on creativity: “You treat ideas like cats: you make them follow you.”</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Terry Pratchett’s cat Patch slept in a desk drawer while he wrote. Science fiction runs on cats.</p><button class="btn alt" type="button">Copy</button></div><h3>Robots</h3><div class="cap"><p>Open the teardown. Pull R7 apart, part by part. Then make it dance.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>R5 and R7 are our fictional Nexus Bots. Asimov 1 is real, open source and built by Menlo Research. You can take all three apart in your browser.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Open-source robots mean anyone can study how one is built. Asimov 1’s CAD, electronics and software are public. Not affiliated, just fans.</p><button class="btn alt" type="button">Copy</button></div></div><h2>Everything in one file</h2><p class="note">All the facts, captions, the thread and the disclaimer as plain text. <a class="btn alt inl" href="press/asimov-press-pack.txt" download>Download text pack</a></p><h2>The Lab: posts</h2><p class="note">Ready to send, with the game link already included. Every post fits on X.</p><div class="copyblock"><div class="cap"><p>ASIMOV: The Lab is live in beta. Walk a 3D lab with friends, stop the reactor, survive the robots. Free, in your browser, no wallet needed. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>New mode: Overrun. Robots build themselves out of the junk in every room, and each round is harder. Open mystery boxes and hope for the bomb. What round can you reach? [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Pick your AI crew: R5 repairs, R7 fights, R3 scouts, R9 keeps the reactor cool. Or bring three friends with a room code. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>One limo ride. One East Room. One typo in the accord. Do you catch it before you sign? [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Reply with your best Overrun round. I’ll start. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>It starts as quantum foam. Thirteen phases later, it’s out of the chamber. Containment is playable now. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>We built a full first-person co-op game that runs in a browser tab, phones included. Try to break it. It’s beta, so you probably will. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Three friends, one failing reactor, four minutes. Who’s fixing consoles and who’s shooting robots? [link]</p><button class="btn alt" type="button">Copy</button></div></div><h2>TikTok and Reels ideas</h2><p class="note">Use the Vertical clips above.</p><div class="copyblock"><div class="cap"><p>Hook: “POV: your lab is failing and your friend won’t stop opening chests.” Show the alarm clip, then a friend reacting. Text on screen: Breach, free in your browser.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Hook: “Rate my AI crew.” Show the crew menu, pick three, and cut to the fight. Ask viewers who they’d pick.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Hook: “Round 11 and I hit the mystery box.” Show the swarm, freeze on the box, then the bomb. Ends on: “What would you have got?”</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Duet or stitch: play the Overrun clip and challenge people to beat your round number.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Hook: “I made a game in a browser tab.” Screen-record the link opening on a phone and the lab appearing, with no install.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Trend format: “Things in this lab that make no sense” with the cat, the sandwiches, the limo gossip and the typo.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Series idea: one lab room per day. Today’s room, what’s in it, and what’s coming as the show drops.</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Short: “Can you spot the typo?” Show the page on screen and reveal the answer in the comments. Then link the game.</p><button class="btn alt" type="button">Copy</button></div></div><h2>In the news</h2><p class="note">Real coverage, linked at the source. Link to articles rather than copying them. NVIDIA, Tesla, Elon Musk and these publishers aren’t involved with and don’t endorse this project or $ASIMOV, so don’t suggest they do, and don’t use these links to imply a token’s value.</p><ul class="sources"><li><a href="https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Announces-NVIDIA-Isaac-GR00T-Reference-Humanoid-Robot-for-Academic-Research" target="_blank" rel="noopener">NVIDIA Announces NVIDIA Isaac GR00T Reference Humanoid Robot for Academic Research</a> · NVIDIA press release, June 2026</li><li><a href="https://www.eweek.com/fr/news/nvidia-unitree-sharpa-humanoid-robot-apac/" target="_blank" rel="noopener">Nvidia, Unitree, and Sharpa Launch New Humanoid Robot for Physical AI Research</a> · eWeek</li><li><a href="https://dataconomy.com/2026/06/01/nvidia-isaac-gr00t-humanoid-robot-platform/" target="_blank" rel="noopener">NVIDIA Isaac GR00T humanoid robot platform</a> · Dataconomy, June 2026</li><li><a href="https://www.thewrap.com/i-robot-alex-proyas-elon-musk-cybercab-robovan-optimus-designs" target="_blank" rel="noopener">‘I, Robot’ Director Calls Out Elon Musk for Aping His Work: ‘Can I Have My Designs Back?’</a> · TheWrap, Oct 2024</li><li><a href="https://www.themarysue.com/elon-musk-clearly-hasnt-learned-anything-from-i-robot-or-terminator/" target="_blank" rel="noopener">Elon Musk clearly hasn’t learned anything from I, Robot or Terminator</a> · The Mary Sue, commentary</li><li><a href="https://www.arabnews.com/business/replacing-humans-with-teslabots-isnt-going-to-be-an-easy-sell-1915816" target="_blank" rel="noopener">Replacing humans with Teslabots isn’t going to be an easy sell</a> · Arab News, with an expert on Asimov’s laws</li></ul><h2>Asimov and news posts</h2><div class="copyblock"><div class="cap"><p>In 1942 Isaac Asimov wrote rules for humanoid robots. In June 2026, NVIDIA announced an open humanoid reference design for researchers. Fiction got there first. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>The director of I, Robot publicly asked for his designs back when Tesla showed its robots. Science fiction keeps getting pulled into the present. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Isaac Asimov, on a book jacket in 1965, already thinking about all of this. Read him, then come play in the lab. [link]</p><button class="btn alt" type="button">Copy</button></div></div><h2>Real Elon Musk posts on Asimov</h2><p class="note">His own words, linked to the original posts. Quote only what’s there. He isn’t involved with and doesn’t endorse this project or $ASIMOV.</p><ul class="sources"><li><a href="https://x.com/elonmusk/status/1842202657160646841" target="_blank" rel="noopener">Elon Musk: “Read Asimov’s Foundation books”</a> · Post on X</li><li><a href="https://twitter.com/elonmusk/status/964866320197038080" target="_blank" rel="noopener">Elon Musk: “With Asimov’s Foundation Series etched in glass in the glovebox. Zeroth law …”</a> · Post on X, Feb 2018</li><li><a href="https://www.cnbc.com/make-it/2020/02/21/elon-musk-recommends-science-fiction-book-series-that-inspired-spacex.html" target="_blank" rel="noopener">Elon Musk shares the science fiction book series that inspired him to start SpaceX</a> · CNBC, Feb 2020</li></ul><h2>Our own takes</h2><p class="note">Our words, ready to post alongside those links.</p><div class="copyblock"><div class="cap"><p>Foundation has been read by a lot of people building the future. Maybe start there. Then come walk the lab. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>They put the Foundation series on a disc in a car and sent it to space. We put a cat on a robot. Everyone honors Asimov in their own way. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Zeroth Law energy, in a browser tab. Stop the reactor, keep the humans. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Make your own PFP in the lab: the cat, a robot or Isaac Asimov, with wires, screws and a glow. [link]</p><button class="btn alt" type="button">Copy</button></div><div class="cap"><p>Read the books. Then pick your robot. Then pick your frame. In that order. [link]</p><button class="btn alt" type="button">Copy</button></div></div><!-- /more -->
+  <h2>Ground rules</h2>
+  <ul class="rules">
+    <li>Asimov 1 belongs to Menlo Research. Don’t describe it as ours, and don’t suggest Menlo is involved with or supports $ASIMOV.</li>
+    <li>Nexus R5 and R7 are fictional robots from our series. Don’t present them as real products.</li>
+    <li>No price predictions or promises of returns.</li>
+    <li>Tell people if you were paid to post.</li>
+  </ul>
+  <p class="fine">$ASIMOV is a meme token with no intrinsic value or expectation of return. Not financial advice; tokens can go to zero. Not affiliated with NVIDIA Corporation, Backed Finance, StonkFun, the estate of Isaac Asimov, or Asimov’s Science Fiction magazine. Asimov 1 is designed by Menlo Research and released as open source under CERN-OHL-S-2.0; we have no affiliation with Menlo and they haven’t endorsed this.</p>
+<section class="clips" id="clips" style="max-width:1100px;margin:28px auto;padding:0 16px">
+<h2 style="font:400 34px Anton,sans-serif;color:#ffd34a;text-transform:uppercase">Clips: play it now</h2>
+<p style="color:#d9d3f2">Short narrated walkthroughs. Narration in British English. Not financial advice.</p>
+<p style="margin:10px 0"><a href="cat-index.html" style="color:#35e0ff">Open the Cat Index (beta speed run) →</a></p>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
+<figure style="margin:0"><video src="press/clips/start-here.mp4" controls playsinline preload="none" style="width:100%;background:#000;display:block"></video><figcaption style="color:#d9d3f2;font-size:14px;margin-top:6px">Start here: play ASIMOV free</figcaption></figure>
+<figure style="margin:0"><video src="press/clips/the-limo.mp4" controls playsinline preload="none" style="width:100%;background:#000;display:block"></video><figcaption style="color:#d9d3f2;font-size:14px;margin-top:6px">The Limo: how to play</figcaption></figure>
+<figure style="margin:0"><video src="press/clips/breach-solo.mp4" controls playsinline preload="none" style="width:100%;background:#000;display:block"></video><figcaption style="color:#d9d3f2;font-size:14px;margin-top:6px">Breach: play solo</figcaption></figure>
+<figure style="margin:0"><video src="press/clips/apophenoth.mp4" controls playsinline preload="none" style="width:100%;background:#000;display:block"></video><figcaption style="color:#d9d3f2;font-size:14px;margin-top:6px">Apophenoth: how to play</figcaption></figure>
+<figure style="margin:0"><video src="press/clips/cat-index.mp4" controls playsinline preload="none" style="width:100%;background:#000;display:block"></video><figcaption style="color:#d9d3f2;font-size:14px;margin-top:6px">Cat Index: beta speed run</figcaption></figure>
+</div></section>
+</main>
+
+<script>
+(function () {
+  var CODE = '4444', KEY = 'asimov-press';
+  var ADS = [
+    ['lab-trailer', 'ASIMOV: The Lab, full trailer', '60+ sec. The whole game: the Lab, AI crew, Breach, Overrun, the limo, the Summit, Containment and the final battle.'],
+    ['lab-post', 'Short post trailer', 'About 20 sec. Made for X, Reels and TikTok.'],
+    ['clip-breach', 'Clip: The reactor is failing', '8 sec of first-person co-op.'],
+    ['clip-overrun', 'Clip: Overrun', '9 sec. Robots swarm, then the bomb drops.'],
+    ['clip-crew', 'Clip: Your AI crew', '5 sec. Pick teammates with different skills.'],
+    ['clip-limo', 'Clip: The limo', '5 sec.'],
+    ['clip-summit', 'Clip: The Summit', '7 sec. Walk the East Room in 3D.'],
+    ['clip-containment', 'Clip: Containment', '7 sec. Evolve and break out.'],
+    ['clip-finale', 'Clip: The final battle', '7 sec. Dodge the hover ships as Turtle.'],
+    ['asimov-1-menlo', 'Asimov 1 dances', '12 sec. Menlo’s open-source robot. Parody, with the not-affiliated line on screen.'],
+    ['nexus-r7', 'Nexus R7', '12 sec. Our green robot assembles, dances, and the cat lands.'],
+    ['nexus-r5', 'Nexus R5', '12 sec. Our white robot on navy.'],
+    ['asimov-project-motion', '$ASIMOV motion graphic', '16 sec. The whole idea, with the full disclaimer.']
+  ];
+  var VIDS = [
+    ['../assets/films/containment-breach.mp4', 'Containment Breach: the Super Intelligence song', '4:47, wide. Final lyric video with music.'],
+    ['asimov-intro-commercial.mp4', 'Intro commercial', '16 sec, wide. The intro film, ending on the logo with the cat and disclaimer.'],
+    ['robot-teardown-demo.mp4', 'Teardown demo', '24 sec, wide. R7, R5, then Asimov 1.'],
+    ['asimov-dance-parody.mp4', 'Asimov dance parody', '10 sec, wide.'],
+    ['intro-wide.mp4', 'Site intro, wide', '11 sec.'],
+    ['intro-portrait.mp4', 'Site intro, vertical', '11 sec.']
+  ];
+  var IMGS = [
+    ['isaac-asimov.jpg', 'Isaac Asimov', 'Photo by Phillip Leonian, New York World-Telegram &amp; Sun. Public domain, via the Library of Congress.'],
+    ['logo-cat-yellow.png', '$ASIMOV logo with cat', 'Transparent PNG, yellow.'],
+    ['logo-cat-green.png', '$ASIMOV logo with cat', 'Transparent PNG, green.'],
+    ['logo-yellow.png', '$ASIMOV logo', 'Transparent PNG, no cat.'],
+    ['cat-sit.png', 'The cat, sitting', 'Transparent PNG.'],
+    ['cat-side.png', 'The cat, side view', 'Transparent PNG.'],
+    ['teardown-poster.jpg', 'R7 taken apart', 'Still from the teardown.']
+  ];
+  var CAPS = [
+    'Science fiction, meet science fact. $ASIMOV: a cat, three laws and a very confused robot. Not financial advice.',
+    'We built a robot teardown you can play with in your browser. Pull R7 and R5 apart, then take Menlo’s open-source Asimov 1 down to its parts.',
+    'Asimov 1 is open source, so yes, we made it dance. Parody with respect. Not affiliated with Menlo, just big fans.',
+    'In 1942 Isaac Asimov wrote three laws for robots that didn’t exist yet. The Three Laws are the real ones. Meme token, not financial advice.'
+  ];
+  var dl = function (path) { return '<a class="btn" href="' + path + '" download>Download</a>'; };
+  var vid = function (path) { return '<div class="thumb"><video src="' + path + '" poster="press/thumbs/' + path.split('/').pop().replace('.mp4', '.jpg') + '" preload="none" muted playsinline controls></video></div>'; };
+  var item = function (thumb, title, sub, btns) { return '<div class="item">' + thumb + '<b>' + title + '</b><small>' + sub + '</small>' + btns + '</div>'; };
+  var CARDS = ['fact-1941', 'fact-1942', 'fact-magicats', 'fact-irobot', 'fact-heinlein', 'fact-robot'];
+  function build() {
+    document.getElementById('cards').innerHTML = CARDS.map(function (c) { return '<div class="item"><div class="thumb"><img loading="lazy" alt="" src="press/cards/' + c + '.png"></div><a class="btn" href="press/cards/' + c + '.png" download>Download</a></div>'; }).join('');
+    document.getElementById('ads').innerHTML = ADS.map(function (a) {
+      var w = 'press/' + a[0] + '-wide.mp4', t = 'press/' + a[0] + '-tall.mp4';
+      return item(vid(w), a[1], a[2], '<a class="btn" href="' + w + '" download>Wide, 16:9</a><a class="btn alt" href="' + t + '" download>Vertical, 9:16</a>');
+    }).join('');
+    document.getElementById('vids').innerHTML = VIDS.map(function (v) { return item(vid('press/' + v[0]), v[1], v[2], dl('press/' + v[0])); }).join('');
+    document.getElementById('imgs').innerHTML = IMGS.map(function (i) { return item('<div class="thumb"><img loading="lazy" alt="" src="press/' + i[0] + '"></div>', i[1], i[2], dl('press/' + i[0])); }).join('');
+    document.getElementById('caps').innerHTML = CAPS.map(function (c) { return '<div class="cap"><p>' + c + '</p><button class="btn alt" type="button">Copy</button></div>'; }).join('');
+    document.getElementById('kit').addEventListener('click', function (e) {
+      if (e.target.tagName !== 'BUTTON' || !e.target.closest('.cap') || e.target.closest('.shr')) return;
+      var b = e.target;
+      navigator.clipboard.writeText(b.previousElementSibling.textContent).then(function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); });
+    });
+  }
+  /* One-tap sharing: every post goes straight to X, the phone's share sheet, or the clipboard. */
+  var LINK = location.origin + location.pathname.replace(/press\.html$/, '') + 'games/breach/index.html';
+  function enc(x) { return encodeURIComponent(x); }
+  function shareRow(text, url) {
+    var row = document.createElement('div'); row.className = 'shr'; var both = url ? text + ' ' + url : text;
+    function a(label, href, cls) { var e = document.createElement('a'); e.href = href; e.target = '_blank'; e.rel = 'noopener'; e.textContent = label; if (cls) e.className = cls; row.appendChild(e); }
+    a('Post on X', 'https://x.com/intent/tweet?text=' + enc(both), 'x');
+    if (navigator.share) { var sh = document.createElement('button'); sh.type = 'button'; sh.textContent = 'Share'; sh.onclick = function () { navigator.share(url ? { text: text, url: url } : { text: text }).catch(function () {}); }; row.appendChild(sh); }
+    a('Telegram', 'https://t.me/share/url?url=' + enc(url || LINK) + '&text=' + enc(text)); a('WhatsApp', 'https://wa.me/?text=' + enc(both)); a('Reddit', 'https://www.reddit.com/submit?url=' + enc(url || LINK) + '&title=' + enc(text.slice(0, 280))); a('Facebook', 'https://www.facebook.com/sharer/sharer.php?u=' + enc(url || LINK));
+    var c = document.createElement('button'); c.type = 'button'; c.textContent = 'Copy'; c.onclick = function () { navigator.clipboard.writeText(both).then(function () { c.textContent = 'Copied'; setTimeout(function () { c.textContent = 'Copy'; }, 1500); }); }; row.appendChild(c);
+    if (both.length > 280) { var w = document.createElement('span'); w.className = 'warn'; w.textContent = both.length + ' characters: too long for a free X post'; row.appendChild(w); }
+    return row;
+  }
+  function addShare() {
+    document.querySelectorAll('#kit .cap').forEach(function (cap) {
+      if (cap.querySelector('.shr')) return; var p = cap.querySelector('p'); if (!p) return; var t = p.textContent, hasLink = t.indexOf('[link]') >= 0, isCA = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(t.trim()); if (hasLink) { t = t.replace(/\s*\[link\]/g, ''); p.textContent = t + ' ' + LINK; }
+      var old = cap.querySelector('button.btn'); if (isCA) return; if (old) old.remove(); cap.appendChild(shareRow(t, hasLink ? LINK : null));
+    });
+    document.querySelectorAll('#kit .sources li').forEach(function (li) { var l = li.querySelector('a'); if (!l || li.querySelector('.shr')) return; li.appendChild(shareRow(l.textContent, l.href)); });
+    var fn = document.querySelector('#kit header p'); if (fn) { var mk = document.createElement('p'); mk.className = 'pnote'; mk.textContent = 'Tap Post on X to open a ready-to-send post. It always asks before posting. Links point to the game.'; fn.parentNode.appendChild(mk); }
+  }
+  function open() { document.getElementById('gate').hidden = true; document.getElementById('kit').hidden = false; build(); addShare(); }
+  try { if (sessionStorage.getItem(KEY) === '1') open(); } catch (e) {}
+  document.getElementById('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (document.getElementById('code').value.trim() === CODE) { try { sessionStorage.setItem(KEY, '1'); } catch (x) {} open(); }
+    else { document.getElementById('msg').textContent = 'That code isn’t right. Try again.'; document.getElementById('code').select(); }
+  });
+})();
+</script>
+<style>
+#kit video{width:100%;max-width:100%;height:auto;aspect-ratio:auto;background:#000}
+.kit-nav{position:sticky;top:0;z-index:20;display:flex;gap:8px;overflow-x:auto;padding:10px 4px;background:rgba(10,10,14,.94);-webkit-overflow-scrolling:touch}
+.kit-nav a{flex:none;padding:9px 13px;border:1px solid #e8c072;border-radius:999px;color:#e8c072;text-decoration:none;font:13px system-ui,sans-serif;white-space:nowrap}
+.kit-dl{display:block;margin:8px 0 18px;padding:13px;min-height:44px;text-align:center;border-radius:10px;background:#e8c072;color:#17110a!important;font:600 15px system-ui,sans-serif;text-decoration:none}
+#kit figure{min-width:0}
+@media(max-width:700px){#kit [style*="width:220px"]{width:calc(50% - 7px)!important}}
+</style>
+<script>
+(function(){var kit=document.getElementById('kit');if(!kit)return;
+function dress(){[].forEach.call(kit.querySelectorAll('video[src]'),function(v){if(v.dataset.dressed)return;v.dataset.dressed='1';var src=v.getAttribute('src'),name=src.split('/').pop();if(!v.getAttribute('poster'))v.setAttribute('poster','press/thumbs/'+name.replace(/\.mp4$/,'.jpg'));v.setAttribute('preload','none');var a=document.createElement('a');a.className='kit-dl';a.href=src;a.setAttribute('download',name);a.textContent='Download';var host=v.closest('figure, .thumb')||v;if(host===v){v.insertAdjacentElement('afterend',a);}else{host.appendChild(a);}});
+if(!kit.querySelector('.kit-nav')){var hs=kit.querySelectorAll('h2'),n=document.createElement('nav');n.className='kit-nav';n.setAttribute('aria-label','Press kit sections');[].forEach.call(hs,function(h,i){if(!h.id)h.id='kit-s'+i;var a=document.createElement('a');a.href='#'+h.id;a.textContent=h.textContent.split(':')[0].slice(0,28);n.appendChild(a);});kit.insertBefore(n,kit.firstChild);}}
+dress();new MutationObserver(dress).observe(kit,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden']});})();
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fan Sci-Fi Wall · ASIMOV</title>
+<meta name="description" content="Share a sci-fi image you made and tell us what you love about sci-fi. Free, not every entry gets used, and a person reviews everything.">
+<link rel="icon" href="data:,">
+<style>
+@font-face{font-family:Anton;src:url(fonts/anton-latin-400-normal.woff2) format('woff2');font-display:swap}
+@font-face{font-family:'Courier Prime';src:url(fonts/courier-prime-latin-400-normal.woff2) format('woff2');font-display:swap}
+*{box-sizing:border-box;margin:0}
+body{background:#05040f;color:#f4efff;font:16px/1.5 'Courier Prime',monospace;min-height:100vh}
+main{max-width:880px;margin:0 auto;padding:28px 20px 60px}
+a{color:#35e0ff}
+.back{display:inline-block;margin-bottom:18px;color:#b4abe0;text-decoration:none}
+h1{font:400 clamp(44px,9vw,88px)/.95 Anton,sans-serif;color:#ffd34a;text-transform:uppercase}
+h2{font:400 30px/1.1 Anton,sans-serif;color:#ffd34a;text-transform:uppercase;margin:38px 0 12px}
+p{margin:0 0 12px;color:#d9d3f2;max-width:64ch}
+.lede{font-size:18px;color:#f4efff}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:16px}
+.card{background:#110c2e;border:1px solid #ffffff33;padding:16px}
+.card b{display:block;color:#7dff4f;margin-bottom:6px}
+.card.no b{color:#ff7ac8}
+#slot{background:#0b0d18;border:1px dashed #35e0ff;padding:22px;margin-top:14px}
+#gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-top:14px}
+#gallery figure{background:#110c2e;border:1px solid #ffffff22;margin:0;padding:10px}
+#gallery img{width:100%;height:auto;display:block;background:#070a1c}
+#gallery figcaption{font-size:14px;color:#d9d3f2;margin-top:8px}
+#gallery figcaption b{color:#ffd34a}
+.empty{color:#b4abe0}
+ul{padding-left:20px;color:#d9d3f2}li{margin-bottom:6px;max-width:64ch}
+.fine{font-size:13px;color:#b4abe0;margin-top:34px;border-top:1px solid #ffffff22;padding-top:14px}
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="index.html">← Back to ASIMOV</a>
+  <h1>Fan Sci-Fi Wall</h1>
+  <p class="lede">Share the sci-fi you love, for free. Make an image yourself, or just tell us what sci-fi means to you. The best entries may feed our episodes and go on this wall, with your name next to them.</p>
+  <p>Not everything gets used, and a person reviews every entry before anything goes public.</p>
+
+  <h2>Two kinds of entries</h2>
+  <div class="two">
+    <div class="card"><b>I made this</b>An image you created yourself. If it's approved, it can go on this wall and into an episode, with credit. You confirm you own the rights.</div>
+    <div class="card no"><b>I just love this</b>A movie still, someone else's art, or any image you didn't make. We won't republish it or use it in an episode. Tell us the title and what you love about it instead.</div>
+  </div>
+
+  <h2>Submit an entry</h2>
+  <div id="slot">
+    <p><b>Submissions open soon.</b> The form isn't live yet. Check back, or follow us for the launch.</p>
+    <!-- When the hosted form exists, paste its embed here. Do not add a link to this page in the nav until the form works. -->
+  </div>
+
+  <h2>On the wall</h2>
+  <p class="empty" id="empty">No entries yet.</p>
+  <div id="gallery" aria-live="polite"></div>
+
+  <h2>House rules</h2>
+  <ul>
+    <li>Free to enter. No payment, no token rewards, no prizes, and nothing tied to holding $ASIMOV.</li>
+    <li>You must be 18 or older.</li>
+    <li>No sexual content, anything involving minors, hate, harassment, real private people, real people's faces, doxxing, or third-party art passed off as your own.</li>
+    <li>Takedown requests and questions: <span id="contact">[contact address to be added]</span>.</li>
+  </ul>
+
+  <p class="fine">Fan art and sci-fi tributes for entertainment. ASIMOV is not affiliated with NVIDIA, Tesla, Elon Musk, Menlo Ventures or any estate, and none of them endorse this page. The Isaac Asimov name is used as a tribute.</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  /* Approved entries live in fans/approved.json. Only the user adds to that file, after review.
+     Everything is written with textContent, so submitted text is never run as HTML. */
+  fetch('fans/approved.json', { cache: 'no-store' }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (list) {
+    if (!Array.isArray(list) || !list.length) return;
+    document.getElementById('empty').hidden = true;
+    var g = document.getElementById('gallery');
+    list.forEach(function (e) {
+      if (!e || typeof e.image !== 'string' || e.image.indexOf('fans/img/') !== 0) return; /* only our own folder */
+      var f = document.createElement('figure'), img = document.createElement('img'), c = document.createElement('figcaption');
+      img.loading = 'lazy'; img.alt = typeof e.alt === 'string' ? e.alt : ''; img.src = e.image;
+      var who = document.createElement('b'); who.textContent = typeof e.credit === 'string' ? e.credit : 'Anonymous fan';
+      c.appendChild(who); c.appendChild(document.createElement('br')); c.appendChild(document.createTextNode(typeof e.love === 'string' ? e.love : ''));
+      f.appendChild(img); f.appendChild(c); g.appendChild(f);
+    });
+  }).catch(function () { /* no list yet: keep the empty note */ });
+})();
+</script>
+</body>
+</html>

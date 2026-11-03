@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PFP Lab: $ASIMOV</title>
+<meta name="description" content="Make a free profile picture: the cat, a Nexus Bot or Isaac Asimov, with glow rings, wires, screws and circuits.">
+<link rel="icon" href="data:,">
+<style>
+@font-face{font-family:Anton;src:url(fonts/anton-latin-400-normal.woff2) format('woff2');font-display:swap}
+@font-face{font-family:'Courier Prime';src:url(fonts/courier-prime-latin-400-normal.woff2) format('woff2');font-display:swap}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}body{min-height:100vh;background:#07051a;color:#f4efff;font:15px/1.4 'Courier Prime',monospace;background-image:linear-gradient(#35e0ff10 1px,transparent 1px),linear-gradient(90deg,#35e0ff10 1px,transparent 1px);background-size:60px 60px}
+button,a.b{font:inherit;color:inherit;cursor:pointer}:focus-visible{outline:2px solid #ffd34a;outline-offset:2px}
+main{max-width:1020px;margin:0 auto;padding:22px 16px 60px}h1{font:400 clamp(44px,9vw,84px)/1 Anton,sans-serif;color:#ffd34a;text-transform:uppercase}.sub{color:#cfc8f0;margin:6px 0 18px}a{color:#35e0ff}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:start}canvas{display:block;width:100%;max-width:480px;margin:auto;aspect-ratio:1;border-radius:50%;box-shadow:0 0 44px #35e0ff55}
+h2{font:400 18px Anton,sans-serif;letter-spacing:.06em;color:#35e0ff;text-transform:uppercase;margin:12px 0 6px}.opts{display:flex;flex-wrap:wrap;gap:6px}.o{min-height:44px;padding:0 12px;background:#110c2e;border:1px solid #ffffff33}.o[aria-pressed=true]{background:#ffd34a;color:#07051a;border-color:#ffd34a;font-weight:700}.sw{width:44px;min-width:44px;padding:0;border:2px solid #ffffff44}.sw[aria-pressed=true]{outline:3px solid #fff;outline-offset:1px}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.b{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 20px;background:#ffd34a;color:#07051a;border:0;font-weight:700;text-decoration:none}.b.alt{background:none;color:#35e0ff;border:1px solid #35e0ff}
+label.t{display:flex;align-items:center;gap:8px;min-height:40px;margin-top:6px}label.t input{width:22px;height:22px}.fine{margin-top:26px;font-size:12px;color:#b4abe0;max-width:80ch}
+@media (max-width:760px){.wrap{grid-template-columns:1fr}canvas{max-width:320px}}
+body.embed main>a,body.embed h1,body.embed .sub{display:none}body.embed main{padding-top:6px}
+.beta{font:700 15px 'Courier Prime',monospace;letter-spacing:.08em;text-transform:lowercase;color:#35e0ff;vertical-align:super}#betaE{display:none;font-size:12px;letter-spacing:.08em;color:#35e0ff;margin-bottom:6px}body.embed #betaE{display:block}
+</style>
+</head>
+<body>
+<main>
+  <a href="index.html">&larr; Back to the site</a>
+  <h1>PFP Lab <small class="beta">beta</small></h1><p class="sub">Build your profile picture. It’s made in your browser and yours to use.</p>
+  <p id="betaE">beta</p>
+  <div class="wrap">
+    <div><canvas id="c" width="1024" height="1024" role="img" aria-label="Your profile picture preview"></canvas></div>
+    <div>
+      <h2>Who</h2><div class="opts" id="who"></div>
+      <h2>Frame</h2><div class="opts" id="frame"></div>
+      <h2>Background</h2><div class="opts" id="bg"></div>
+      <h2>Accent</h2><div class="opts" id="acc"></div>
+      <label class="t" id="tagL"><input type="checkbox" id="tag">Add a $ASIMOV tag</label>
+      <div class="acts"><button class="b" id="dl">Download PNG</button><button class="b alt" id="share" hidden>Share</button><button class="b alt" id="rnd">Surprise me</button></div>
+    </div>
+  </div>
+  <p class="fine">Fan art tool, made for fun. The Isaac Asimov photo is public domain (Phillip Leonian, New York World-Telegram &amp; Sun, via the Library of Congress). It’s shown as a tribute with no token tag, and his estate isn’t involved. Nexus Bots and the cat are our own characters.</p>
+</main>
+<script>
+(function () {
+  'use strict';
+  if (window.top !== window) document.body.classList.add('embed');
+  var $ = function (i) { return document.getElementById(i); }, c = $('c'), x = c.getContext('2d'), S = 1024, C = S / 2;
+  var WHO = [['cat', 'The cat'], ['catfull', 'Cat, sitting'], ['r7', 'Robot R7'], ['r5', 'Robot R5'], ['r8', 'Robot R8'], ['isaac', 'Isaac Asimov']];
+  var FRAMES = [['glow', 'Glow ring'], ['wires', 'Wires'], ['screws', 'Screws'], ['circuit', 'Circuit'], ['scan', 'Scanner'], ['hazard', 'Hazard']];
+  var BGS = ['#07051a', '#0a2a1a', '#2a0614', '#071c33', '#241040', '#1c1610'], ACC = ['#7dff4f', '#35e0ff', '#ff2fb3', '#ffd34a', '#ff5a3c', '#f4f4ff'];
+  var st = { who: 'cat', frame: 'glow', bg: BGS[0], acc: ACC[0], tag: false }, img = {};
+  function load(k, src) { var i = new Image(); i.onload = function () { img[k] = i; draw(); }; i.src = src; }
+  load('cat', 'assets/cat-head.png'); load('catfull', 'assets/cat-front.png'); load('isaac', 'press/isaac-asimov.jpg');
+  function ring(r, w, col, blur) { x.save(); x.lineWidth = w; x.strokeStyle = col; x.shadowColor = col; x.shadowBlur = blur || 0; x.beginPath(); x.arc(C, C, r, 0, 7); x.stroke(); x.restore(); }
+  function rng(s) { return function () { s = (s * 16807) % 2147483647; return s / 2147483647; }; }
+  /* robots: drawn directly, so they stay crisp at any size */
+  function robot(kind) {
+    var a = kind === 'r5' ? ['#ffffff', '#cdd6d8', '#7f8c90'] : kind === 'r8' ? ['#3a3d4a', '#1a1b24', '#07070c'] : ['#a8ff6a', '#2e9a22', '#0c4a10'];
+    function shade(cx, cy, r) { var g = x.createRadialGradient(cx - r * .35, cy - r * .4, r * .1, cx, cy, r * 1.05); g.addColorStop(0, a[0]); g.addColorStop(.55, a[1]); g.addColorStop(1, a[2]); return g; }
+    x.fillStyle = shade(C, 880, 280); x.beginPath(); x.moveTo(C - 300, 1024); x.quadraticCurveTo(C - 290, 720, C - 110, 690); x.lineTo(C + 110, 690); x.quadraticCurveTo(C + 290, 720, C + 300, 1024); x.fill();
+    x.fillStyle = '#14161f'; x.fillRect(C - 56, 620, 112, 90); x.fillStyle = st.acc; for (var i = 0; i < 3; i++) x.fillRect(C - 66, 634 + i * 26, 132, 7);
+    x.fillStyle = shade(C, 430, 225); x.beginPath(); x.ellipse(C, 430, 205, 225, 0, 0, 7); x.fill();
+    [-1, 1].forEach(function (d) { x.fillStyle = '#14161f'; x.beginPath(); x.arc(C + d * 205, 440, 38, 0, 7); x.fill(); x.strokeStyle = st.acc; x.lineWidth = 8; x.shadowColor = st.acc; x.shadowBlur = 18; x.beginPath(); x.arc(C + d * 205, 440, 24, 0, 7); x.stroke(); x.shadowBlur = 0; });
+    x.fillStyle = '#07080d'; x.beginPath(); x.roundRect(C - 175, 370, 350, 92, 46); x.fill();
+    x.save(); var col = kind === 'r8' ? '#ff1a1a' : st.acc; x.fillStyle = col; x.shadowColor = col; x.shadowBlur = 34; if (kind === 'r8') x.fillRect(C - 135, 410, 270, 10); else { x.beginPath(); x.roundRect(C - 140, 396, 280, 38, 19); x.fill(); } x.restore();
+    if (kind === 'r7') { x.strokeStyle = st.acc; x.lineWidth = 3; x.shadowColor = st.acc; x.shadowBlur = 8; [[-90, 500, -90, 570, -40, 600], [80, 500, 80, 545, 40, 590], [-60, 300, -60, 250, -100, 230], [70, 310, 70, 260, 110, 250]].forEach(function (l) { x.beginPath(); x.moveTo(C + l[0], l[1]); x.lineTo(C + l[2], l[3]); x.lineTo(C + l[4], l[5]); x.stroke(); }); x.shadowBlur = 0; }
+    x.fillStyle = 'rgba(255,255,255,.45)'; x.beginPath(); x.ellipse(C - 80, 290, 46, 26, -.5, 0, 7); x.fill();
+  }
+  function subject() {
+    var w = st.who;
+    if (w === 'r7' || w === 'r5' || w === 'r8') { robot(w); return; }
+    var i = img[w]; if (!i) return;
+    if (w === 'cat') { var h = 800, wd = h * i.width / i.height; x.drawImage(i, C - wd / 2, 150, wd, h); return; }
+    if (w === 'catfull') { var hh = 880, ww = hh * i.width / i.height; x.drawImage(i, C - ww / 2, 90, ww, hh); return; }
+    /* a duotone tribute portrait, tinted with the accent colour */
+    var sc = Math.max(960 / i.width, 960 / i.height), dw = i.width * sc, dh = i.height * sc; x.save(); x.filter = 'grayscale(1) contrast(1.25) brightness(1.08)'; x.drawImage(i, C - dw / 2, C - dh / 2 + 30, dw, dh); x.filter = 'none'; x.globalCompositeOperation = 'color'; x.fillStyle = st.acc; x.globalAlpha = .62; x.fillRect(0, 0, S, S); x.restore();
+  }
+  var FRAME = {
+    glow: function () { ring(476, 22, st.acc, 60); ring(442, 3, st.acc, 18); },
+    wires: function () { ring(482, 18, '#171a24'); var r = rng(77); ['#ff2fb3', '#35e0ff', '#ffd34a', st.acc].forEach(function (col, k) { x.save(); x.strokeStyle = col; x.lineWidth = 9; x.lineCap = 'round'; x.shadowColor = col; x.shadowBlur = 12; x.beginPath(); for (var a = 0; a <= 6.3; a += .09) { var q = 450 + k * 13 + Math.sin(a * (5 + k) + k) * 12 + (r() - .5) * 2; var px = C + Math.cos(a) * q, py = C + Math.sin(a) * q; if (a === 0) x.moveTo(px, py); else x.lineTo(px, py); } x.closePath(); x.stroke(); x.restore(); }); for (var i = 0; i < 6; i++) { var b = i * 1.047 + .3; x.save(); x.translate(C + Math.cos(b) * 468, C + Math.sin(b) * 468); x.rotate(b); x.fillStyle = '#c9ccd4'; x.fillRect(-26, -13, 52, 26); x.restore(); } },
+    screws: function () { ring(474, 44, '#3a404f'); ring(452, 3, '#8a93a6'); ring(496, 3, '#14161f'); ring(474, 3, st.acc, 16); for (var i = 0; i < 12; i++) { var a = i * .5236 + .26, px = C + Math.cos(a) * 474, py = C + Math.sin(a) * 474; var g = x.createRadialGradient(px - 6, py - 6, 2, px, py, 19); g.addColorStop(0, '#f4f6fa'); g.addColorStop(1, '#6a7180'); x.fillStyle = g; x.beginPath(); x.arc(px, py, 18, 0, 7); x.fill(); x.save(); x.translate(px, py); x.rotate(a * 3); x.fillStyle = '#20232c'; x.fillRect(-13, -2.5, 26, 5); x.fillRect(-2.5, -13, 5, 26); x.restore(); } },
+    circuit: function () { ring(468, 6, st.acc, 18); x.save(); x.strokeStyle = st.acc; x.fillStyle = st.acc; x.lineWidth = 5; x.shadowColor = st.acc; x.shadowBlur = 12; var r = rng(9); for (var i = 0; i < 28; i++) { var a = i / 28 * 6.283, r1 = 468, r2 = 400 + r() * 34, ax = a + (r() - .5) * .08, m = r1 - 28; x.beginPath(); x.moveTo(C + Math.cos(a) * r1, C + Math.sin(a) * r1); x.lineTo(C + Math.cos(a) * m, C + Math.sin(a) * m); x.lineTo(C + Math.cos(ax) * r2, C + Math.sin(ax) * r2); x.stroke(); x.beginPath(); x.arc(C + Math.cos(ax) * r2, C + Math.sin(ax) * r2, 8, 0, 7); x.fill(); } x.restore(); },
+    scan: function () { ring(468, 5, st.acc, 22); x.save(); x.strokeStyle = st.acc; x.lineWidth = 16; x.shadowColor = st.acc; x.shadowBlur = 24; [0, 1.5708, 3.1416, 4.7124].forEach(function (a) { x.beginPath(); x.arc(C, C, 436, a - .28, a + .28); x.stroke(); }); x.restore(); x.save(); x.beginPath(); x.arc(C, C, 500, 0, 7); x.clip(); x.fillStyle = 'rgba(255,255,255,.035)'; for (var y = 0; y < S; y += 10) x.fillRect(0, y, S, 3); var g = x.createLinearGradient(0, 590, 0, 650); g.addColorStop(0, 'transparent'); g.addColorStop(.85, st.acc); g.addColorStop(1, 'transparent'); x.globalAlpha = .75; x.fillStyle = g; x.fillRect(0, 590, S, 60); x.restore(); },
+    hazard: function () { x.save(); for (var i = 0; i < 40; i++) { x.strokeStyle = i % 2 ? '#ffd34a' : '#111118'; x.lineWidth = 48; x.beginPath(); x.arc(C, C, 476, i / 40 * 6.283, (i + 1) / 40 * 6.283); x.stroke(); } x.restore(); ring(446, 5, st.acc, 22); }
+  };
+  function draw() {
+    x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, S, S); x.save(); x.beginPath(); x.arc(C, C, 512, 0, 7); x.clip();
+    var g = x.createRadialGradient(C, 430, 60, C, C, 560); g.addColorStop(0, st.bg === BGS[0] ? '#1b1040' : st.acc + '55'); g.addColorStop(.42, st.bg); g.addColorStop(1, '#020208'); x.fillStyle = g; x.fillRect(0, 0, S, S);
+    x.strokeStyle = st.acc + '1c'; x.lineWidth = 2; for (var q = 0; q < S; q += 64) { x.beginPath(); x.moveTo(q, 0); x.lineTo(q, S); x.moveTo(0, q); x.lineTo(S, q); x.stroke(); }
+    x.save(); x.beginPath(); x.arc(C, C, 450, 0, 7); x.clip(); subject(); x.restore(); FRAME[st.frame]();
+    if (st.tag && st.who !== 'isaac') { x.save(); x.font = '400 66px Anton,Impact,sans-serif'; x.textAlign = 'center'; var t = '$ASIMOV', w = x.measureText(t).width + 56; x.fillStyle = '#07051a'; x.strokeStyle = st.acc; x.lineWidth = 5; x.beginPath(); x.roundRect(C - w / 2, 800, w, 92, 12); x.fill(); x.stroke(); x.fillStyle = '#ffd34a'; x.fillText(t, C, 870); x.restore(); }
+    x.restore();
+  }
+  function group(id, items, key, sw) { var b = $(id); b.textContent = ''; items.forEach(function (it) { var v = sw ? it : it[0], e = document.createElement('button'); e.type = 'button'; e.className = 'o' + (sw ? ' sw' : ''); if (sw) { e.style.background = it; e.setAttribute('aria-label', key + ' ' + it); } else e.textContent = it[1]; e.setAttribute('aria-pressed', st[key] === v); e.onclick = function () { st[key] = v; ui(); draw(); }; b.appendChild(e); }); }
+  function ui() { group('who', WHO, 'who'); group('frame', FRAMES, 'frame'); group('bg', BGS, 'bg', true); group('acc', ACC, 'acc', true); $('tagL').hidden = st.who === 'isaac'; $('tag').checked = st.tag; }
+  $('tag').onchange = function () { st.tag = this.checked; draw(); };
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  $('rnd').onclick = function () { st.who = pick(WHO)[0]; st.frame = pick(FRAMES)[0]; st.bg = pick(BGS); st.acc = pick(ACC); ui(); draw(); };
+  function name() { return 'asimov-pfp-' + st.who + '-' + st.frame + '.png'; }
+  $('dl').onclick = function () { c.toBlob(function (b) { var a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name(); document.body.appendChild(a); a.click(); a.remove(); setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000); }, 'image/png'); };
+  if (navigator.canShare && navigator.share) { $('share').hidden = false; $('share').onclick = function () { c.toBlob(function (b) { var f = new File([b], name(), { type: 'image/png' }); if (navigator.canShare({ files: [f] })) navigator.share({ files: [f], text: 'Made in the PFP Lab' }).catch(function () {}); }, 'image/png'); }; }
+  ui(); draw(); if (document.fonts) document.fonts.ready.then(draw);
+  window.__pfp = { st: st, draw: draw, ui: ui, c: c };
+})();
+</script>
+</body>
+</html>

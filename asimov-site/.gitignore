@@ -1,0 +1,21 @@
+*.mp4
+*.mov
+*.wav
+movie/node_modules
+node_modules/
+film/renders/
+film/snapshots/
+film/assets/excerpt/
+film-cat/assets/excerpt/
+film-cat/renders/
+film-cat/snapshots/
+!assets/films/*.mp4
+renders/
+# third-party reference art: look, do not ship
+refs/
+saga/refs/
+film-pop/frames/
+film-pop/*.mp4
+film-mv/v2/assets/mix.wav
+!press/*.mp4
+!games/asimov-breach/*.mp4

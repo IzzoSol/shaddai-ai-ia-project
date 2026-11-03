@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Cat Index · Beta Speed Run · ASIMOV</title>
+<meta name="description" content="The top cat coins, live from DexScreener. Beta speed run: collect them as they fly past. Not financial advice.">
+<link rel="icon" href="data:,">
+<style>
+@font-face{font-family:Anton;src:url(fonts/anton-latin-400-normal.woff2) format('woff2');font-display:swap}
+@font-face{font-family:'Courier Prime';src:url(fonts/courier-prime-latin-400-normal.woff2) format('woff2');font-display:swap}
+*{box-sizing:border-box;margin:0}
+html,body{background:#05040f;color:#f4efff;font:16px/1.5 'Courier Prime',monospace;min-height:100%}
+a{color:#35e0ff}
+button{font:inherit;color:inherit;cursor:pointer;min-height:44px}
+:focus-visible{outline:2px solid #ffd34a;outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;border-bottom:1px solid #ffffff22;flex-wrap:wrap}
+.top a.back{color:#b4abe0;text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+h1{font:400 clamp(40px,8vw,72px)/.95 Anton,sans-serif;color:#ffd34a;text-transform:uppercase;padding:18px 16px 4px}
+.sub{padding:0 16px;color:#d9d3f2;max-width:70ch}
+.beta{display:inline-block;margin:0 16px;padding:2px 10px;border:1px solid #ff7ac8;color:#ff7ac8;font-size:13px;letter-spacing:.1em}
+#stage{position:relative;margin:16px;height:min(62vh,520px);min-height:340px;border:1px solid #35e0ff55;background:#070a1c;overflow:hidden;touch-action:manipulation;user-select:none}
+#stage canvas{display:block;width:100%;height:100%}
+#hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:space-between;gap:8px;padding:10px;pointer-events:none;font-size:14px}
+#hud b{color:#ffd34a;font-size:20px}
+#toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);padding:8px 16px;font:700 22px/1.2 Anton,sans-serif;text-transform:uppercase;letter-spacing:.04em;background:#07051acc;opacity:0;transition:opacity .15s;pointer-events:none;white-space:nowrap}
+#toast.good{color:#7dff4f;border:1px solid #7dff4f}#toast.bad{color:#ff7ac8;border:1px solid #ff7ac8}
+#msg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;padding:14px 18px;background:#07051add;border:1px solid #ffd34a;max-width:90%}
+.btn{min-height:50px;padding:0 22px;background:#ffd34a;color:#07051a;font-weight:700;border:0;font-size:16px}
+.btn.alt{background:transparent;border:1px solid #ffffff66;color:#f4efff}
+.row{display:flex;gap:10px;flex-wrap:wrap;padding:0 16px;align-items:center}
+.seg{display:inline-flex;border:1px solid #35e0ff66}
+.seg button{background:transparent;border:0;padding:0 14px;min-height:44px}
+.seg button[aria-pressed=true]{background:#35e0ff;color:#05040f;font-weight:700}
+#list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding:16px}
+.coin{display:block;background:#110c2e;border:1px solid #ffffff22;border-left:4px solid var(--c,#35e0ff);padding:12px;text-decoration:none;color:inherit;min-height:44px}
+.coin:hover,.coin:focus-visible{border-color:#ffd34a}
+.coin .n{font:400 26px/1 Anton,sans-serif;color:#ffd34a;text-transform:uppercase}
+.coin small{display:block;color:#b4abe0}
+.coin .r{float:right;color:#7dff4f;font-size:13px}.coin .r.neg{color:#ff7ac8}
+.fine{padding:16px;font-size:13px;color:#b4abe0;max-width:90ch}
+#status{padding:0 16px;color:#b4abe0;min-height:24px}
+</style>
+</head>
+<body>
+<header class="top">
+  <a class="back" href="index.html#games">← Games</a>
+  <span class="beta">BETA</span>
+</header>
+<h1>Cat Index</h1>
+<p class="sub">The top cat coins, live from DexScreener. Start the beta speed run, then tap each cat as it flies past. Or skip the game and just read the list.</p>
+
+<section id="stage" aria-label="Beta speed run">
+  <canvas id="c" aria-hidden="true"></canvas>
+  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="hud" aria-live="polite"><span>Cats <b id="got">0</b> / <b id="tot">0</b></span><span>Time <b id="clock">0.0</b>s</span><span>Best <b id="best">–</b></span></div>
+  <div id="msg"><b>Beta speed run</b><br>Tap (or press Space) when a cat is inside the ring. The ring turns green when you can hit it. Collect all 12, fast. Miss one and you lose 2 seconds.<br><br><button class="btn" id="go" disabled>Loading cats…</button></div>
+</section>
+
+<div class="row" style="margin-top:4px">
+  <div class="seg" role="group" aria-label="Sort by">
+    <button id="sortMc" aria-pressed="true">Highest market cap</button>
+    <button id="sortVol" aria-pressed="false">Most popular (24h volume)</button>
+  </div>
+  <button class="btn alt" id="refresh">Refresh data</button>
+</div>
+<p id="status" role="status"></p>
+<section id="list" aria-label="Cat coins"></section>
+
+<p class="fine">Meme coins are extremely risky. Prices, market caps and volumes come from DexScreener and can be out of date or wrong. Nothing on this page is financial advice, a recommendation, or a promise of returns. ASIMOV is not affiliated with any of these projects. Tap a coin to open its live chart on DexScreener, and do your own research.</p>
+
+<script src="vendor/three.min.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (i) { return document.getElementById(i); };
+  var QUERIES = ['cat', 'cats', 'catcoin', 'meow', 'kitten', 'kitty', 'nyan'];
+  var CAT_RE = /\b(cats?|catcoin|kitt(y|en)|meow|nyan)\b/i;
+  var coins = [], sortBy = 'mc';
+  var RUN_KEY = 'cat-index-best';
+
+  function fmt(n) { if (n == null || isNaN(n)) return '–'; if (n >= 1e9) return '$' + (n / 1e9).toFixed(2) + 'B'; if (n >= 1e6) return '$' + (n / 1e6).toFixed(2) + 'M'; if (n >= 1e3) return '$' + (n / 1e3).toFixed(1) + 'K'; return '$' + n.toFixed(0); }
+  function loadCoins() {
+    $('status').textContent = 'Loading live cat coins…';
+    var failed = 0;
+    return Promise.all(QUERIES.map(function (q) {
+      return fetch('https://api.dexscreener.com/latest/dex/search?q=' + encodeURIComponent(q)).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).catch(function () { failed++; return { pairs: [] }; });
+    })).then(function (res) {
+      var byToken = {};
+      res.forEach(function (j) {
+        (j.pairs || []).forEach(function (p) {
+          var b = p.baseToken || {}, sym = b.symbol || '', name = b.name || '';
+          if (!CAT_RE.test(sym + ' ' + name)) return;
+          if (!p.liquidity || p.liquidity.usd < 5000) return;          // drop empty spam pools
+          var key = p.chainId + ':' + (b.address || sym);
+          var prev = byToken[key];
+          if (!prev || p.liquidity.usd > prev.liq) byToken[key] = { sym: sym, name: name, chain: p.chainId, mc: p.marketCap || p.fdv || 0, vol: (p.volume && p.volume.h24) || 0, chg: p.priceChange && p.priceChange.h24, liq: p.liquidity.usd, url: p.url || ('https://dexscreener.com/' + p.chainId + '/' + (p.pairAddress || '')) };
+        });
+      });
+      coins = Object.keys(byToken).map(function (k) { return byToken[k]; });
+      coins.sort(function (a, b) { return sortBy === 'mc' ? b.mc - a.mc : b.vol - a.vol; });
+      coins = coins.slice(0, 12);
+      renderList();
+      $('status').textContent = coins.length ? 'Showing ' + coins.length + ' cat coins, updated ' + new Date().toLocaleTimeString() + '.' : (failed === QUERIES.length ? 'Couldn’t reach DexScreener. Check your connection, then tap Refresh.' : 'No cat coins matched right now. Tap Refresh to try again.');
+      $('tot').textContent = coins.length; $('go').disabled = !coins.length; $('go').textContent = coins.length ? 'Start beta speed run' : 'No cats loaded';
+      buildScene();
+    });
+  }
+  var PAL = ['#ffd34a', '#35e0ff', '#ff7ac8', '#7dff4f', '#ff9a5c', '#7f9cff'];
+  function renderList() {
+    var L = $('list'); L.textContent = '';
+    coins.forEach(function (c, i) {
+      var a = document.createElement('a'); a.className = 'coin'; a.href = c.url; a.target = '_blank'; a.rel = 'noopener'; a.style.setProperty('--c', PAL[i % PAL.length]);
+      var r = document.createElement('span'); r.className = 'r' + (c.chg < 0 ? ' neg' : ''); r.textContent = (c.chg == null ? '' : (c.chg > 0 ? '+' : '') + c.chg.toFixed(1) + '%');
+      var n = document.createElement('span'); n.className = 'n'; n.textContent = '#' + (i + 1) + ' ' + c.sym;
+      var s = document.createElement('small'); s.textContent = c.name.slice(0, 32) + ' · ' + c.chain;
+      var m = document.createElement('small'); m.textContent = 'MC ' + fmt(c.mc) + ' · 24h vol ' + fmt(c.vol);
+      a.appendChild(r); a.appendChild(n); a.appendChild(s); a.appendChild(m); L.appendChild(a);
+    });
+  }
+  $('sortMc').onclick = function () { sortBy = 'mc'; $('sortMc').setAttribute('aria-pressed', 'true'); $('sortVol').setAttribute('aria-pressed', 'false'); coins.sort(function (a, b) { return b.mc - a.mc; }); renderList(); };
+  $('sortVol').onclick = function () { sortBy = 'vol'; $('sortVol').setAttribute('aria-pressed', 'true'); $('sortMc').setAttribute('aria-pressed', 'false'); coins.sort(function (a, b) { return b.vol - a.vol; }); renderList(); };
+  $('refresh').onclick = function () { loadCoins(); };
+
+  /* ── Three.js beta speed run ── */
+  var T = window.THREE, cv = $('c'), R = null, scene, cam, cards = [], track, lines = [], ring = null, ringPulse = 0;
+  var state = 'idle', t0 = 0, clock = 0, got = 0, miss = 0, penalty = 0, speed = 9, LANE_Z = 0;
+  function tex(c, i) {
+    var cw = 512, ch = 288, cn = document.createElement('canvas'); cn.width = cw; cn.height = ch; var x = cn.getContext('2d');
+    x.fillStyle = '#0b0a22'; x.fillRect(0, 0, cw, ch); x.strokeStyle = PAL[i % PAL.length]; x.lineWidth = 10; x.strokeRect(5, 5, cw - 10, ch - 10);
+    x.fillStyle = PAL[i % PAL.length]; x.font = '700 92px Impact, Anton, sans-serif'; x.textAlign = 'center'; x.fillText(c.sym.slice(0, 10), cw / 2, 140);
+    x.fillStyle = '#f4efff'; x.font = '26px Courier New, monospace'; x.fillText(c.name.slice(0, 28), cw / 2, 190);
+    x.fillStyle = '#b4abe0'; x.font = '24px Courier New, monospace'; x.fillText('#' + (i + 1) + ' · ' + fmt(c.mc), cw / 2, 240);
+    var t = new T.CanvasTexture(cn); t.anisotropy = 4; return t;
+  }
+  function buildScene() {
+    if (!T || !coins.length) return;
+    if (!R) {
+      try { R = new T.WebGLRenderer({ canvas: cv, antialias: !matchMedia('(pointer:coarse)').matches }); } catch (e) { $('msg').innerHTML = '<b>3D is off on this device.</b><br>You can still read the live list below.'; $('go').disabled = true; return; }
+      R.setPixelRatio(Math.min(1.5, devicePixelRatio || 1));
+      scene = new T.Scene(); scene.background = new T.Color(0x070a1c); scene.fog = new T.Fog(0x070a1c, 14, 46);
+      cam = new T.PerspectiveCamera(58, 1, .1, 120); cam.position.set(0, 1.25, 4.2); cam.lookAt(0, .95, -6);
+      scene.add(new T.AmbientLight(0xffffff, .7)); var p = new T.PointLight(0x35e0ff, 1.2, 20); p.position.set(0, 4, 2); scene.add(p);
+      track = new T.Group(); scene.add(track);
+      var g = new T.PlaneGeometry(4, 60, 1, 1), m = new T.MeshBasicMaterial({ color: 0x0d1030 }); var floor = new T.Mesh(g, m); floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0, -24); scene.add(floor);
+      var lg = new T.BufferGeometry(), pts = []; for (var z = 6; z >= -44; z -= 2) { pts.push(-1.4, 0, z, 1.4, 0, z); }
+      lg.setAttribute('position', new T.Float32BufferAttribute(pts, 3)); var ls = new T.LineSegments(lg, new T.LineBasicMaterial({ color: 0x35e0ff, transparent: true, opacity: .35 })); scene.add(ls); lines.push(ls);
+      var catchLine = new T.Mesh(new T.PlaneGeometry(3.2, .05), new T.MeshBasicMaterial({ color: 0xff7ac8 })); catchLine.rotation.x = -Math.PI / 2; catchLine.position.set(0, .01, LANE_Z); scene.add(catchLine);
+      /* the tap ring: sits where cats should be tapped; green when a cat is inside it */
+      ring = new T.Mesh(new T.RingGeometry(.62, .7, 48), new T.MeshBasicMaterial({ color: 0xff7ac8, transparent: true, opacity: .9, side: T.DoubleSide }));
+      ring.position.set(0, .95, LANE_Z + .2); scene.add(ring);
+      resize(); addEventListener('resize', resize); requestAnimationFrame(frame);
+    }
+    // (re)build the coin cards, so Refresh shows the new list
+    cards.forEach(function (m) { track.remove(m); if (m.material.map) m.material.map.dispose(); m.material.dispose(); m.geometry.dispose(); }); cards = [];
+    coins.forEach(function (c, i) {
+      var mesh = new T.Mesh(new T.PlaneGeometry(2.1, 1.19), new T.MeshBasicMaterial({ map: tex(c, i), transparent: true }));
+      mesh.userData = { i: i, done: false }; mesh.position.set(((i % 3) - 1) * 1.1, .95, -40 - i * 4.2); track.add(mesh); cards.push(mesh);
+    });
+    state = 'idle'; $('best').textContent = bestText();
+  }
+  function bestText() { try { var b = parseFloat(localStorage.getItem(RUN_KEY)); return isNaN(b) ? '–' : b.toFixed(1) + 's'; } catch (e) { return '–'; } }
+  function resize() { if (!R) return; var w = cv.clientWidth, h = cv.clientHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); }
+  function start() {
+    if (!cards.length) return;
+    state = 'run'; t0 = performance.now(); got = 0; miss = 0; penalty = 0; speed = 9;
+    cards.forEach(function (m, i) { m.userData.done = false; m.visible = true; m.position.z = -40 - i * 4.2; });
+    $('msg').hidden = true; $('got').textContent = '0';
+  }
+  function finish() {
+    state = 'done';
+    var total = clock + penalty; var best = null;
+    try { var old = parseFloat(localStorage.getItem(RUN_KEY)); if (isNaN(old) || total < old) { localStorage.setItem(RUN_KEY, total.toFixed(2)); best = true; } } catch (e) {}
+    $('best').textContent = bestText();
+    $('msg').hidden = false; $('msg').innerHTML = '<b>Run done: ' + total.toFixed(1) + 's</b>' + (miss ? '<br>' + miss + ' missed (+' + penalty.toFixed(0) + 's)' : '') + (best ? '<br>New best!' : '') + '<br><br><button class="btn" id="again">Run it again</button>';
+    $('again').onclick = start;
+  }
+  function tap() {
+    if (state !== 'run') { start(); return; }
+    var best = null, bd = 1e9;
+    cards.forEach(function (m) { if (m.userData.done) return; var d = Math.abs(m.position.z - LANE_Z); if (d < bd) { bd = d; best = m; } });
+    if (best && bd < 1.4) { best.userData.done = true; best.visible = false; got++; $('got').textContent = got; flash(); }
+  }
+  var toastT = 0;
+  function toast(text, good) { var t = $('toast'); t.textContent = text; t.className = good ? 'good' : 'bad'; t.style.opacity = 1; toastT = 0.9; }
+  function flash() { ringPulse = 1; toast('Got it!', true); }
+  cv.addEventListener('pointerdown', function (e) { e.preventDefault(); tap(); });
+  addEventListener('keydown', function (e) {
+    if (e.code !== 'Space' || document.activeElement !== document.body) return;
+    e.preventDefault();
+    if (state === 'run') tap(); else if (!$('go').disabled) start();
+  });
+  $('go').onclick = function () { if (state === 'idle' || state === 'done') start(); };
+
+  var last = performance.now();
+  function frame(now) {
+    requestAnimationFrame(frame);
+    var dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (state === 'run') {
+      clock = (now - t0) / 1000;
+      speed = Math.min(16, 8 + clock * .25);
+      cards.forEach(function (m) { if (m.userData.done) return; m.position.z += speed * dt; if (m.position.z > 2.6) { m.userData.done = true; m.visible = false; miss++; penalty += 2; toast('Missed: +2s', false); } });
+      $('clock').textContent = clock.toFixed(1);
+      if (got + miss >= cards.length) finish();
+    }
+    lines.forEach(function (l) { l.position.z = (l.position.z + (state === 'run' ? speed : 3) * dt) % 2; });
+    ringPulse = Math.max(0, ringPulse - dt * 3);
+    toastT = Math.max(0, toastT - dt); if (toastT === 0 && $('toast').style.opacity === '1') $('toast').style.opacity = 0;
+    /* highlight the cat nearest the tap line, and light the ring when it is in range */
+    var near = null, nd = 1e9;
+    cards.forEach(function (m) { if (m.userData.done) return; var d = Math.abs(m.position.z - LANE_Z); if (d < nd) { nd = d; near = m; } });
+    var inRange = state === 'run' && near && nd < 1.4;
+    cards.forEach(function (m, i) {
+      if (!m.visible) return;
+      m.position.y = .95 + Math.sin(now / 500 + i) * .04; m.rotation.y = Math.sin(now / 700 + i) * .15;
+      var s = (m === near && state === 'run') ? 1.12 : 1; m.scale.set(s, s, s);
+    });
+    if (ring) {
+      ring.material.color.setHex(inRange ? 0x7dff4f : 0xff7ac8);
+      var rs = 1 + ringPulse * .35 + (inRange ? Math.sin(now / 120) * .04 : 0); ring.scale.set(rs, rs, 1);
+    }
+    if (R) R.render(scene, cam);
+  }
+  loadCoins();
+})();
+</script>
+</body>
+</html>
