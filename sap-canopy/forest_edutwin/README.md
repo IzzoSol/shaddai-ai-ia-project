@@ -145,20 +145,100 @@ No GPU required. No telemetry. No API keys. No cloud calls.
 
 ---
 
+## Reference curve: how `growth_reference.csv` was made
+
+The reference curves are **not hand-waved numbers**. They were digitised from the three
+published SAP graphs by `tools/digitize_reference.py`. The source PNGs are vendored in
+`data/reference_graphs/` (~140 KB total), so the whole chain runs from a fresh clone with no
+external files:
+
+| Vendored file | Original | What it gives |
+|---|---|---|
+| `canopy_growth.png` | `image (2).png` — *Educational 15-Year Canopy Growth Projection* | canopy cover (%) vs years 0–15 |
+| `cumulative_carbon.png` | `image (1).png` — *Illustrative Cumulative Carbon Storage* | cumulative carbon (tC per hectare) vs years 0–15 |
+| `year15_bars.png` | `image.png` — *Year 15 Canopy Cover* + *Year 15 Illustrative CO₂e* | independent bar cross-check of the year-15 endpoints |
+
+Method (fully reproducible — `python tools/digitize_reference.py --write`):
+
+1. **Axis recovery.** Tick *marks* (dark pixels just outside the axes spines) are located
+   programmatically; the tick *values* are read off the rendered axis labels and fitted with
+   least squares. Gridlines are never used for calibration, so legend-box artefacts cannot
+   poison it.
+2. **Series isolation.** The series are the exact matplotlib colours — green `(0,128,0)` for
+   mangrove, blue `(0,0,255)` for urban.
+3. **Trace.** A dynamic program scores paths by *uncovered columns*. The matplotlib legend
+   swatch occupies only ~35 columns, so any path that teleports from the swatch to the real
+   curve leaves hundreds of columns uncovered and loses. The genuine curve wins; dashed
+   series still trace correctly because their gaps are short.
+4. **Sampling.** Each year is sampled from the traced path, refined to the sub-pixel centre
+   of the drawn line, with the dashed tail extrapolated to year 15.
+
+**Validation.** The digitised year-15 endpoints are checked against the *bar* graph, which is
+an entirely separate rendering:
+
+| | digitised | bar graph | error |
+|---|---|---|---|
+| mangrove canopy | 88.07 % | 88.14 % | 0.08 % |
+| urban canopy | 45.55 % | 45.58 % | 0.07 % |
+| mangrove CO₂e | 426.25 t/ha | 427.08 t/ha | 0.20 % |
+| urban CO₂e | 126.16 t/ha | 127.08 t/ha | 0.73 % |
+
+Regenerating the CSV from the vendored graphs reproduces it **byte for byte**.
+
+### How the calibration is applied
+
+`apply_calibration()` never pastes the reference over the model. For each year it derives a
+correction factor and applies it multiplicatively:
+
+```
+k(t)         = reference(t) / model_reference(t)
+calibrated(t) = model(t) * k(t)
+```
+
+`model_reference(t)` is the model's own prediction for canonical conditions (1 ha, full
+stocking, one cohort at year 0). So:
+
+* at full stocking the app reproduces the published curve **year by year**, not just at the
+  endpoint (the previous endpoint-only scaling matched the year-15 bar but had the wrong
+  curve *shape* — mangrove canopy rose 4.7 % in year 1 where the graph shows ≈24 %);
+* planting density, plot area and cohort timing still move the result the way the underlying
+  model says they should, because only the *factor* is imported, never the absolute values;
+* year 0 keeps the model's meaning — "the day you plant" is 0 % canopy and 0 carbon. The
+  published curves assume a little pre-existing canopy at year 0 (5.8 % mangrove / 8.4 %
+  urban) that this planting model does not include.
+
+Upload your own CSV in the UI to override the built-in reference.
+
+---
+
 ## Files
 
 ```
 forest_edutwin/
   app.py                 Gradio UI (5 tabs)
-  scenarios.py           deterministic growth + carbon model
+  scenarios.py           deterministic growth + carbon model + calibration
   agent.py               Asimov explainability agent + tools
   model.py               Ollama / transformers-4bit / template backends
   plots.py               Plotly figures (Treegens palette)
   static/plot_twin.html  Three.js 3D plot twin (SimReady assets) — served at /plot/plot_twin.html
   hf_sample_fetch.py     selective Hugging Face sample fetcher
-  data/growth_reference.csv  illustrative reference curves (1 ha)
+  data/growth_reference.csv  reference curves digitised from the published graphs
+  data/reference_graphs/     the three source PNGs the curves were digitised from
+  tools/digitize_reference.py     reproduces data/growth_reference.csv from the PNGs
+  tools/verify_calibration.py     checks the calibrated model against the published bars
+  tools/check_reference_current.py  confirms the committed CSV still matches a fresh digitisation
   EXPLAINABILITY (in app.py)
 ```
+
+### Verify the whole chain
+
+```bash
+python tools/check_reference_current.py   # CSV == fresh digitisation
+python tools/verify_calibration.py        # calibrated curve == published curve + responsiveness
+```
+
+Both must print `PASS`. The first guards the *source data*, the second guards the
+*calibration algebra*.
 
 MIT licensed. Designed as the citizen-facing on-ramp to the full SAP Three.js canopy twin
 (`../index.html`) and the Treegens Dashboard v2.

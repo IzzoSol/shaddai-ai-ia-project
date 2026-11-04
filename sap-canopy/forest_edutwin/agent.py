@@ -110,9 +110,11 @@ def tool_compare(area_ha: float, years: int, start_condition: float,
 
 
 def tool_planting_plan(area_ha: float, cohorts: List[Dict], years: int,
-                        start_condition: float, scenario_key: str = "mangrove") -> Dict:
+                        start_condition: float, scenario_key: str = "mangrove",
+                        calibration=None) -> Dict:
     """cohorts: [{'year': int, 'stems_per_ha': float}, ...]"""
     rows = sc.project(scenario_key, area_ha, years, start_condition, planting_events=cohorts)
+    rows = sc.apply_calibration(rows, calibration, scenario_key)
     return {"rows": rows, "cohorts": cohorts}
 
 

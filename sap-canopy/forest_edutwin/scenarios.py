@@ -259,19 +259,78 @@ def load_calibration(csv_path: Optional[str]) -> Optional[List[Dict]]:
         return None
 
 
+def _model_reference_rows(scenario_key: str, years: int) -> List[Dict]:
+    """
+    The model's own prediction under the *canonical* reference conditions:
+    1 hectare, full stocking, a single cohort planted at year 0.
+
+    This is the baseline the published reference curve is measured against.
+    """
+    return project(scenario_key, area_ha=1.0, years=max(0, years), start_condition=1.0)
+
+
+_DEFAULT_CALIBRATION_LOADED = False
+_DEFAULT_CALIBRATION: Optional[List[Dict]] = None
+
+
+def default_calibration() -> Optional[List[Dict]]:
+    """
+    The built-in reference curve, digitised from the published SAP graphs by
+    ``tools/digitize_reference.py`` (see data/growth_reference.csv).
+
+    Returns None when the CSV is absent, in which case the raw model output is
+    used unchanged.
+    """
+    global _DEFAULT_CALIBRATION_LOADED, _DEFAULT_CALIBRATION
+    if not _DEFAULT_CALIBRATION_LOADED:
+        _DEFAULT_CALIBRATION = load_calibration(reference_csv_path())
+        _DEFAULT_CALIBRATION_LOADED = True
+    return _DEFAULT_CALIBRATION
+
+
 def apply_calibration(rows: List[Dict], calibration: Optional[List[Dict]], scenario_key: str) -> List[Dict]:
     """
-    If calibration data exists for this scenario, scale the model output so that the
-    final-year canopy and carbon match the reference (piecewise linear interpolation).
-    This keeps the model explainable while letting published curves ground it.
+    Ground the model in a reference curve (e.g. digitised from the published
+    SAP graphs) *without* throwing away the model's response to the user's
+    inputs.
+
+    Passing ``calibration=None`` uses the built-in reference curve; pass an
+    empty list to switch the correction off entirely.
+
+    For every year we derive a correction factor
+
+        k(t) = reference(t) / model_reference(t)
+
+    where ``model_reference(t)`` is the model's own prediction for canonical
+    conditions (1 ha, full stocking, one cohort at year 0). The calibrated
+    output is then
+
+        calibrated(t) = model(t) * k(t)
+
+    Consequences, which is exactly what we want:
+
+    * At canonical conditions the app reproduces the published curve year by
+      year, not just at the horizon endpoint (the old endpoint-only scaling
+      matched the year-15 bar but had the wrong curve *shape*).
+    * Planting density, plot area and cohort timing still move the result the
+      way the underlying model says they should, because only the correction
+      factor is imported from the reference, never the absolute values.
+    * Year 0 keeps the model's own meaning ("the day you plant"): the
+      published curves assume a little pre-existing canopy at year 0
+      (5.8% mangrove / 8.4% urban) that this planting model does not include.
+
+    The reference carbon values are per hectare; the ratio is therefore taken
+    against a 1 ha reference projection and applied to the plot total.
     """
+    if calibration is None:
+        calibration = default_calibration()
     if not calibration:
         return rows
     ref = [c for c in calibration if c["scenario"] in (scenario_key, "", "any")]
     if len(ref) < 2:
         return rows
     ref.sort(key=lambda c: c["year"])
-    max_year = max(r["year"] for r in rows)
+    ref_min, ref_max = ref[0]["year"], ref[-1]["year"]
 
     def interp(year, key):
         if year <= ref[0]["year"]:
@@ -285,19 +344,26 @@ def apply_calibration(rows: List[Dict], calibration: Optional[List[Dict]], scena
                 return a[key] + f * (b[key] - a[key])
         return ref[-1][key]
 
-    model_end_canopy = rows[-1]["canopy_pct"]
-    model_end_carbon = rows[-1]["carbon_tco2e"]
-    ref_end_canopy = interp(max_year, "canopy_pct")
-    ref_end_carbon = interp(max_year, "carbon_tco2e")
-    canopy_scale = (ref_end_canopy / model_end_canopy) if model_end_canopy > 0 else 1.0
-    carbon_scale = (ref_end_carbon / model_end_carbon) if model_end_carbon > 0 else 1.0
+    max_year = max([r["year"] for r in rows] + [ref_max])
+    model_ref = {r["year"]: r for r in _model_reference_rows(scenario_key, max_year)}
 
     out = []
     for r in rows:
+        t = r["year"]
         nr = dict(r)
-        nr["canopy_pct"] = round(min(100.0, r["canopy_pct"] * canopy_scale), 2)
-        nr["carbon_tco2e"] = round(r["carbon_tco2e"] * carbon_scale, 2)
-        nr["carbon_tc"] = round(nr["carbon_tco2e"] * (12.0 / 44.0), 2)
+        if ref_min <= t <= ref_max:
+            mref = model_ref.get(t)
+
+            # --- canopy cover (already a percentage of the plot) -------------
+            model_ref_canopy = (mref or {}).get("canopy_pct", 0.0)
+            k_canopy = (interp(t, "canopy_pct") / model_ref_canopy) if model_ref_canopy > 1e-6 else 1.0
+            nr["canopy_pct"] = round(min(100.0, max(0.0, r["canopy_pct"] * k_canopy)), 2)
+
+            # --- carbon (reference is per hectare) ---------------------------
+            model_ref_carbon = (mref or {}).get("carbon_tco2e", 0.0)
+            k_carbon = (interp(t, "carbon_tco2e") / model_ref_carbon) if model_ref_carbon > 1e-6 else 1.0
+            nr["carbon_tco2e"] = round(max(0.0, r["carbon_tco2e"] * k_carbon), 2)
+            nr["carbon_tc"] = round(nr["carbon_tco2e"] * (12.0 / 44.0), 2)
         out.append(nr)
     return out
 

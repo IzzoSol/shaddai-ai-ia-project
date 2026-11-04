@@ -1,33 +1,33 @@
-scenario,year,canopy_pct,carbon_tco2e,stems,mean_height_m
-mangrove,0,0.0,0.0,1200,0.0
-mangrove,1,4.72,21.85,1176,3.21
-mangrove,2,15.54,95.4,1154,5.24
-mangrove,3,28.31,204.61,1132,6.77
-mangrove,4,40.51,330.99,1111,7.98
-mangrove,5,51.06,461.09,1091,8.96
-mangrove,6,59.69,586.41,1072,9.75
-mangrove,7,66.55,702.1,1054,10.4
-mangrove,8,71.92,805.83,1037,10.95
-mangrove,9,76.1,896.83,1020,11.4
-mangrove,10,79.36,975.33,1004,11.78
-mangrove,11,81.9,1042.09,989,12.1
-mangrove,12,83.89,1098.16,975,12.37
-mangrove,13,85.46,1144.7,961,12.6
-mangrove,14,86.71,1182.87,948,12.79
-mangrove,15,87.7,1213.77,935,12.96
-urban,0,0.0,0.0,50,0.0
-urban,1,0.72,1.7,50,3.13
-urban,2,2.43,9.57,49,5.58
-urban,3,4.62,24.04,49,7.6
-urban,4,6.97,43.63,49,9.29
-urban,5,9.28,66.46,48,10.72
-urban,6,11.45,90.87,48,11.92
-urban,7,13.41,115.53,48,12.94
-urban,8,15.15,139.48,47,13.81
-urban,9,16.67,162.09,47,14.55
-urban,10,17.99,182.98,47,15.18
-urban,11,19.12,201.95,47,15.72
-urban,12,20.08,218.94,46,16.18
-urban,13,20.88,233.99,46,16.57
-urban,14,21.56,247.2,46,16.91
-urban,15,22.13,258.68,46,17.2
+scenario,year,canopy_pct,carbon_tco2e,carbon_tc,source
+mangrove,0,5.75,3.38,0.92,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,1,24.39,40.29,10.99,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,2,38.77,77.92,21.25,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,3,50.07,113.62,30.99,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,4,58.85,146.91,40.07,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,5,65.73,178.75,48.75,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,6,71.12,209.14,57.04,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,7,75.33,237.85,64.87,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,8,78.67,265.59,72.43,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,9,81.19,291.64,79.54,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,10,83.09,316.73,86.38,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,11,84.68,340.37,92.83,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,12,85.91,363.53,99.14,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,13,86.73,385.24,105.07,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,14,87.55,406.95,110.99,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+mangrove,15,88.07,426.25,116.25,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,0,8.37,0.48,0.13,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,1,13.15,10.86,2.96,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,2,17.77,22.23,6.06,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,3,21.62,30.88,8.42,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,4,25.32,40.04,10.92,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,5,28.35,49.69,13.55,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,6,31.27,58.38,15.92,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,7,33.74,68.03,18.55,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,8,36.05,75.75,20.66,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,9,37.85,83.46,22.76,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,10,39.49,91.67,25.0,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,11,41.13,98.9,26.97,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,12,42.47,105.18,28.68,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,13,43.93,113.38,30.92,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,14,44.73,120.13,32.76,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)
+urban,15,45.55,126.16,34.41,digitised from SAP reference graphs 'image (2).png' (canopy %) and 'image (1).png' (cumulative tC/ha)

@@ -50,7 +50,7 @@ everywhere.
 | Moment | What the user just did | Explainability needed | How this demo answers |
 |---|---|---|---|
 | **Projection produced** | moved a slider / picked a scenario | *What is this number and what is it not?* | Headline card + metric glossary + the caveat on every answer |
-| **A number surprises them** | canopy jumps from 30% to 88% between year 5 and 15 | *Why?* | "Explain metric" tool: the survival, crown-growth and overlap equations |
+| **A number surprises them** | mangrove canopy climbs from ~66% to ~88% between year 5 and 15 | *Why?* | "Explain metric" tool: the survival, crown-growth and overlap equations |
 | **Comparing two options** | mangrove vs urban | *On what basis?* | Side-by-side chart + a table with the same rows and the same assumptions |
 | **Cost question** | asks "is this worth it?" | *What is excluded from this cost?* | Cost tool explains what is *not* included (land, maintenance, monitoring, co-benefits) |
 | **Funding / claim moment** | ambassador prepares a Treegens claim | *How does this become evidence?* | Proof of Tree link, verification explainer, local-first privacy note |
@@ -65,11 +65,30 @@ everywhere.
    are always referenced as the verification and high-fidelity layers.
 4. The local demo is explicitly *not* a production simulation.
 
+## Where the numbers come from
+
+The curve is the deterministic model in `scenarios.py` (survival → height → crown → overlap →
+biomass → carbon), **corrected year by year against a reference curve** digitised from the
+published SAP graphs (`data/growth_reference.csv`):
+
+```
+k(t)          = reference(t) / model_reference(t)
+calibrated(t) = model(t) * k(t)
+```
+
+`model_reference(t)` is the model's own prediction for 1 ha, full stocking, one cohort at
+year 0. So at full stocking the app reproduces the published graphs curve-for-curve
+(mangrove ≈88% canopy / ≈426 tCO₂e per ha and urban ≈46% / ≈126 tCO₂e per ha by year 15),
+while planting density, plot area and cohort timing still drive the result. Year 0 stays
+0% canopy / 0 carbon — "the day you plant" — because the published curves assume a little
+pre-existing canopy this planting model does not include. Uploading a CSV overrides the
+built-in reference.
+
 ## Privacy
 
 * Ollama / transformers run on-device. No prompt, slider value or upload leaves the machine.
 * No telemetry, no API keys, no account.
-* The optional calibration CSV is read locally and never uploaded.
+* Any calibration CSV is read locally and never uploaded.
 
 ## Hardware envelope (8 GB ThinkPad)
 
@@ -101,6 +120,14 @@ CSS = """
 # Calibration state (uploaded CSV)
 # ---------------------------------------------------------------------------
 def _calibration_from_file(file_obj):
+    """
+    Return the calibration rows to use.
+
+    * No upload  -> None, which means "use the built-in reference curve"
+                    (data/growth_reference.csv, digitised from the published
+                    SAP graphs).
+    * Upload     -> the uploaded rows, which override the built-in reference.
+    """
     if not file_obj:
         return None
     path = getattr(file_obj, "name", file_obj)
@@ -108,16 +135,26 @@ def _calibration_from_file(file_obj):
 
 
 def _calibration_text(file_obj):
-    if not file_obj:
-        return "Using the built-in illustrative model (no external calibration loaded)."
-    cal = _calibration_from_file(file_obj)
-    if not cal:
-        return ("Calibration file could not be read. Expected CSV columns: "
-                "`scenario,year,canopy_pct,carbon_tco2e`.")
-    kinds = sorted({c["scenario"] or "any" for c in cal})
-    return (f"Calibration loaded: **{len(cal)}** reference points for "
-            f"`{', '.join(kinds)}`. Model output is scaled to match the reference "
-            "at the horizon while staying explainable.")
+    if file_obj:
+        cal = _calibration_from_file(file_obj)
+        if not cal:
+            return ("Calibration file could not be read — falling back to the built-in reference "
+                    "curve. Expected CSV columns: `scenario,year,canopy_pct,carbon_tco2e`.")
+        kinds = sorted({c["scenario"] or "any" for c in cal})
+        return (f"**Uploaded calibration active** — {len(cal)} reference points for "
+                f"`{', '.join(kinds)}`. It overrides the built-in reference curve; the model "
+                "output is corrected year by year against it.")
+
+    built_in = sc.default_calibration()
+    if not built_in:
+        return "Using the built-in illustrative model (no reference curve found)."
+    return (
+        "**Built-in reference curve active** — digitised from the published SAP graphs "
+        "(`data/growth_reference.csv`). At full stocking the model reproduces those curves "
+        "year by year: mangrove ≈88% canopy / ≈426 tCO₂e per hectare and urban ≈46% / "
+        "≈126 tCO₂e per hectare by year 15. Planting density, area and cohort timing still "
+        "drive the result. Upload a CSV to override."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -350,8 +387,13 @@ with demo:
                     years_sl = gr.Slider(0, 15, value=15, step=1, label="Years (0-15)")
                     start_sl = gr.Slider(0.2, 1.5, value=1.0, step=0.05,
                                          label="Starting condition (stocking multiplier)")
-                    calib_file = gr.File(label="Optional calibration CSV",
+                    calib_file = gr.File(label="Calibration CSV (optional — overrides built-in reference)",
                                          file_types=[".csv"], file_count="single")
+                    gr.Markdown(
+                        "<div class='sap-note' style='font-size:11px'>Columns: "
+                        "<code>scenario,year,canopy_pct,carbon_tco2e</code>. Leave empty to use the "
+                        "built-in reference curve digitised from the published SAP graphs.</div>"
+                    )
                     go_btn = gr.Button("Project 15-year trajectory", variant="primary")
                 with gr.Column(scale=6):
                     headline_md = gr.Markdown()
