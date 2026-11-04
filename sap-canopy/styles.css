@@ -1,0 +1,135 @@
+/* SAP Canopy Digital Twin - TURTLE UI/UX */
+:root{
+  --accent:#4caf50;
+  --gold:#ffd54f;
+  --bg:#0b0f14;
+  --surface:#121a22;
+  --surface-2:#18232e;
+  --border:#223141;
+  --text:#e6edf3;
+  --muted:#9fb0c3;
+  --success:#4caf50;
+  --warning:#ffb300;
+  --danger:#ef5350;
+  --radius:16px;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --font:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;
+}
+
+/* Treegens Dashboard v2 tokens */
+[data-theme="treegens"]{
+  --accent:#4caf50;
+  --gold:#ffd54f;
+  --bg:#0a0e13;
+  --surface:#111922;
+  --surface-2:#17222d;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family:var(--font);
+  background:var(--bg);
+  color:var(--text);
+  overflow:hidden;
+}
+
+#app{display:grid;grid-template-columns:320px 1fr;grid-template-rows:56px 1fr;height:100vh}
+
+/* Top bar */
+.topbar{
+  grid-column:1/-1;
+  display:flex;align-items:center;gap:12px;
+  padding:0 16px;
+  background:linear-gradient(180deg,var(--surface),var(--surface-2));
+  border-bottom:1px solid var(--border);
+  z-index:10;
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700}
+.brand-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+.badge{font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(255,213,79,.12);color:var(--gold);border:1px solid rgba(255,213,79,.3)}
+
+/* Sidebar */
+.sidebar{
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  padding:16px;
+  gap:16px;
+  overflow:auto;
+}
+.card{
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:var(--shadow);
+}
+.card h3{margin:0 0 8px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.metric{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border)}
+.metric:last-child{border-bottom:none}
+.kpi{font-weight:700;color:var(--gold)}
+
+.controls{display:grid;gap:10px}
+.btn{
+  background:var(--accent);
+  color:white;border:none;padding:10px 12px;border-radius:12px;
+  font-weight:600;cursor:pointer;
+  transition:transform .15s ease, filter .15s ease;
+}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+.range{width:100%}
+
+/* Viewer */
+.viewer{position:relative;background:#000}
+#three-canvas{width:100%;height:100%;display:block}
+#leaflet-overlay{
+  position:absolute;inset:0;z-index:2;pointer-events:none;
+}
+.map-controls{
+  position:absolute;top:12px;right:12px;z-index:3;display:flex;gap:8px;
+}
+.pill{
+  background:rgba(18,26,34,.85);backdrop-filter:blur(8px);
+  border:1px solid var(--border);color:var(--text);
+  padding:8px 10px;border-radius:999px;font-size:12px;
+}
+
+/* Signal card style matching MiroFish */
+.signal-card{
+  border-left:4px solid var(--accent);
+  background:linear-gradient(180deg,rgba(76,175,80,.08),transparent);
+}
+.signal-card.buy{border-left-color:#4caf50}
+.signal-card.sell{border-left-color:#ef5350}
+.signal-card.hold{border-left-color:#ffb300}
+
+/* Tree tooltip */
+.tooltip{
+  position:absolute;pointer-events:none;z-index:5;
+  background:rgba(18,26,34,.95);border:1px solid var(--border);
+  border-radius:12px;padding:10px 12px;font-size:12px;
+  box-shadow:var(--shadow);
+  max-width:260px;
+}
+.tooltip .title{color:var(--gold);font-weight:700;margin-bottom:4px}
+.tooltip .meta{color:var(--muted);font-size:11px}
+
+/* HUD */
+.hud{
+  position:absolute;left:12px;bottom:12px;z-index:3;
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.hud .chip{
+  background:rgba(18,26,34,.85);border:1px solid var(--border);
+  color:var(--muted);padding:6px 10px;border-radius:999px;font-size:11px;
+}
+
+/* Responsive */
+@media(max-width:1024px){
+  #app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .sidebar{position:absolute;left:0;top:56px;bottom:0;width:300px;z-index:4;transform:translateX(-100%);transition:transform .3s ease}
+  .sidebar.open{transform:translateX(0)}
+}

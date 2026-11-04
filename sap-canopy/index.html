@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en" data-theme="treegens">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SAP Canopy • Shaddai Asimov Project - Urban Forest Digital Twin</title>
+<link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="styles.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>SAP CANOPY</span>
+      <span class="badge">TURTLE • Treegens v2</span>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="pill">Sacred Geometry: Metatron</button>
+      <button class="pill">LOD: Active</button>
+    </div>
+  </header>
+
+  <aside class="sidebar">
+    <div class="card">
+      <h3>Live Metrics</h3>
+      <div class="metric"><span>Carbon Sequestered</span><span class="kpi" id="kpi-carbon">—</span></div>
+      <div class="metric"><span>Trees Rendered</span><span class="kpi" id="kpi-trees">—</span></div>
+      <div class="metric"><span>Avg Health</span><span class="kpi" id="kpi-health">—</span></div>
+    </div>
+
+    <div class="card">
+      <h3>Treegens Link</h3>
+      <div class="controls">
+        <input id="claim-id" placeholder="Claim ID e.g. CLAIM-001" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text)"/>
+        <button class="btn" id="focus-claim">Focus Tree</button>
+        <button class="btn secondary" id="reload-db">Reload AirlinesDB</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Rendering</h3>
+      <div class="controls">
+        <label>Tree Density</label>
+        <input class="range" id="density" type="range" min="200" max="2000" value="800">
+        <label>Canopy Opacity</label>
+        <input class="range" id="opacity" type="range" min="0.3" max="1" step="0.05" value="0.8">
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Sacred Placement</h3>
+      <p style="font-size:12px;color:var(--muted)">Fibonacci spiral & Metatron's cube drive instancing. Health modulates color via CSS tokens --accent/#4caf50 and --gold/#ffd54f.</p>
+      <button class="btn secondary" id="toggle-geometry">Toggle Sacred Nodes</button>
+    </div>
+  </aside>
+
+  <main class="viewer">
+    <canvas id="three-canvas"></canvas>
+    <div id="leaflet-overlay"></div>
+    <div class="map-controls">
+      <button class="pill">Map</button>
+      <button class="pill">3D</button>
+    </div>
+    <div class="hud">
+      <span class="chip">InstancedMesh</span>
+      <span class="chip">LOD Active</span>
+      <span class="chip">Treegens DB</span>
+    </div>
+    <div id="tooltip" class="tooltip" style="display:none"></div>
+  </main>
+</div>
+
+<script type="module" src="main.js"></script>
+<script>
+// Minimal UI wiring for demo
+document.getElementById('reload-db').addEventListener('click', ()=> location.reload());
+document.getElementById('focus-claim').addEventListener('click', ()=>{
+  const id = document.getElementById('claim-id').value.trim();
+  if(id) alert(`Focus request for ${id} — hook into SAP adapter.getByClaim()`);
+});
+</script>
+</body>
+</html>
