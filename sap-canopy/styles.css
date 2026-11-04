@@ -1,4 +1,5 @@
-/* SAP Canopy Digital Twin - TURTLE UI/UX */
+/* SAP Canopy Digital Twin — TURTLE UI/UX
+   Tokens aligned with TREEGENS Dashboard v2 (accent #4caf50, gold #ffd54f). */
 :root{
   --accent:#4caf50;
   --gold:#ffd54f;
@@ -16,7 +17,6 @@
   --font:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;
 }
 
-/* Treegens Dashboard v2 tokens */
 [data-theme="treegens"]{
   --accent:#4caf50;
   --gold:#ffd54f;
@@ -35,9 +35,14 @@ body{
   overflow:hidden;
 }
 
-#app{display:grid;grid-template-columns:320px 1fr;grid-template-rows:56px 1fr;height:100vh}
+#app{
+  display:grid;
+  grid-template-columns:320px 1fr 340px;
+  grid-template-rows:56px 1fr;
+  height:100vh;
+}
 
-/* Top bar */
+/* ---------------- Top bar ---------------- */
 .topbar{
   grid-column:1/-1;
   display:flex;align-items:center;gap:12px;
@@ -49,15 +54,14 @@ body{
 .brand{display:flex;align-items:center;gap:10px;font-weight:700}
 .brand-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
 .badge{font-size:11px;padding:4px 8px;border-radius:999px;background:rgba(255,213,79,.12);color:var(--gold);border:1px solid rgba(255,213,79,.3)}
+.topbar-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
-/* Sidebar */
+/* ---------------- Sidebar ---------------- */
 .sidebar{
   background:var(--surface);
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;
-  padding:16px;
-  gap:16px;
-  overflow:auto;
+  padding:16px;gap:16px;overflow:auto;
 }
 .card{
   background:var(--surface-2);
@@ -68,68 +72,115 @@ body{
 }
 .card h3{margin:0 0 8px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .metric{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--border)}
-.metric:last-child{border-bottom:none}
+.metric:last-of-type{border-bottom:none}
 .kpi{font-weight:700;color:var(--gold)}
+.kpi.dim{color:var(--muted);font-weight:600}
 
 .controls{display:grid;gap:10px}
+.controls label{font-size:12px;color:var(--muted);display:flex;justify-content:space-between}
+.controls .val{color:var(--gold);font-weight:600}
 .btn{
-  background:var(--accent);
-  color:white;border:none;padding:10px 12px;border-radius:12px;
-  font-weight:600;cursor:pointer;
-  transition:transform .15s ease, filter .15s ease;
+  background:var(--accent);color:#04120a;border:none;padding:10px 12px;border-radius:12px;
+  font-weight:700;cursor:pointer;transition:transform .15s ease,filter .15s ease,box-shadow .15s ease;
 }
-.btn:hover{transform:translateY(-1px);filter:brightness(1.1)}
+.btn:hover{transform:translateY(-1px);filter:brightness(1.08);box-shadow:0 6px 18px rgba(76,175,80,.22)}
 .btn.secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
-.range{width:100%}
+.btn.secondary:hover{border-color:var(--accent);color:var(--accent);box-shadow:none}
+.btn.full{width:100%;margin-top:8px}
+input[type=text],input:not([type]),#claim-id,#ask-input{
+  width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);
+  background:var(--surface);color:var(--text);font-family:inherit;font-size:13px;outline:none;
+}
+#claim-id:focus,#ask-input:focus{border-color:var(--accent)}
+.range{width:100%;accent-color:var(--accent)}
 
-/* Viewer */
-.viewer{position:relative;background:#000}
+.hint{font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0}
+.hint code,.caveat code{background:rgba(255,255,255,.05);padding:1px 5px;border-radius:5px;font-size:11px}
+.caveat{
+  font-size:11px;color:var(--muted);line-height:1.5;margin:10px 0 0;
+  border-left:3px solid var(--gold);padding-left:9px;
+}
+.warn{color:var(--warning);font-size:12px}
+
+/* ---------------- Viewer ---------------- */
+.viewer{position:relative;background:#000;overflow:hidden}
 #three-canvas{width:100%;height:100%;display:block}
 #leaflet-overlay{
-  position:absolute;inset:0;z-index:2;pointer-events:none;
+  position:absolute;inset:0;z-index:2;pointer-events:auto;
+  opacity:.92;transition:opacity .25s ease;
 }
-.map-controls{
-  position:absolute;top:12px;right:12px;z-index:3;display:flex;gap:8px;
-}
+.viewer.map-focus #leaflet-overlay{opacity:1}
+.viewer.map-focus #three-canvas{opacity:.35}
+#three-canvas{transition:opacity .25s ease}
+.map-fallback{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--muted);text-align:center}
+
+.map-controls{position:absolute;top:12px;right:12px;z-index:5;display:flex;gap:8px}
 .pill{
   background:rgba(18,26,34,.85);backdrop-filter:blur(8px);
   border:1px solid var(--border);color:var(--text);
-  padding:8px 10px;border-radius:999px;font-size:12px;
+  padding:8px 10px;border-radius:999px;font-size:12px;cursor:pointer;
 }
+.pill.ghost{cursor:default;color:var(--muted)}
+.pill.active{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 1px rgba(76,175,80,.2)}
 
-/* Signal card style matching MiroFish */
-.signal-card{
-  border-left:4px solid var(--accent);
-  background:linear-gradient(180deg,rgba(76,175,80,.08),transparent);
+/* ---------------- Drawer (explainer) ---------------- */
+.drawer{
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  padding:16px;display:flex;flex-direction:column;gap:16px;overflow:auto;
 }
+.drawer-card{flex:1}
+.drawer-card .row{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px dashed var(--border);font-size:12px}
+.drawer-card .row span{color:var(--muted)}
+.drawer-card .row code{font-size:11px;color:var(--gold)}
+.ask-form{display:flex;gap:8px;margin-top:12px}
+.ask-form input{flex:1}
+.answer{font-size:13px;line-height:1.6;white-space:pre-wrap}
+.dim{color:var(--muted)}
+
+/* ---------------- Leaflet skin ---------------- */
+.leaflet-container{background:#0a0e13;font-family:var(--font)}
+.sap-cluster-dot{
+  width:34px;height:34px;border-radius:50%;
+  background:rgba(76,175,80,.28);border:2px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:12px;
+}
+.sap-popup{font-size:12px;line-height:1.5}
+.sap-popup em{color:#9fb0c3;font-style:normal;font-size:11px}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#121a22;color:#e6edf3;border:1px solid #223141}
+
+/* ---------------- MiroFish-style signal cards ---------------- */
+.signal-card{border-left:4px solid var(--accent);background:linear-gradient(180deg,rgba(76,175,80,.08),transparent)}
 .signal-card.buy{border-left-color:#4caf50}
 .signal-card.sell{border-left-color:#ef5350}
 .signal-card.hold{border-left-color:#ffb300}
 
-/* Tree tooltip */
+/* ---------------- Tooltip ---------------- */
 .tooltip{
-  position:absolute;pointer-events:none;z-index:5;
+  position:absolute;pointer-events:none;z-index:6;
   background:rgba(18,26,34,.95);border:1px solid var(--border);
   border-radius:12px;padding:10px 12px;font-size:12px;
-  box-shadow:var(--shadow);
-  max-width:260px;
+  box-shadow:var(--shadow);max-width:280px;
 }
 .tooltip .title{color:var(--gold);font-weight:700;margin-bottom:4px}
-.tooltip .meta{color:var(--muted);font-size:11px}
+.tooltip .meta{color:var(--muted);font-size:11px;line-height:1.5}
+.tooltip .meta.dim{margin-top:6px;font-style:italic}
 
-/* HUD */
-.hud{
-  position:absolute;left:12px;bottom:12px;z-index:3;
-  display:flex;gap:8px;flex-wrap:wrap;
-}
+/* ---------------- HUD ---------------- */
+.hud{position:absolute;left:12px;bottom:12px;z-index:5;display:flex;gap:8px;flex-wrap:wrap}
 .hud .chip{
-  background:rgba(18,26,34,.85);border:1px solid var(--border);
+  background:rgba(18,26,34,.85);backdrop-filter:blur(8px);border:1px solid var(--border);
   color:var(--muted);padding:6px 10px;border-radius:999px;font-size:11px;
 }
 
-/* Responsive */
+/* ---------------- Responsive ---------------- */
+@media(max-width:1280px){
+  #app{grid-template-columns:290px 1fr 300px}
+}
 @media(max-width:1024px){
   #app{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-  .sidebar{position:absolute;left:0;top:56px;bottom:0;width:300px;z-index:4;transform:translateX(-100%);transition:transform .3s ease}
+  .sidebar{position:absolute;left:0;top:56px;bottom:0;width:300px;z-index:7;transform:translateX(-100%);transition:transform .3s ease}
   .sidebar.open{transform:translateX(0)}
+  .drawer{position:absolute;right:0;top:56px;bottom:0;width:320px;z-index:7}
 }

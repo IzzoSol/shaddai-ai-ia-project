@@ -1,7 +1,15 @@
 # SAP Canopy Digital Twin — Design Brief
 **Project:** S.A.P. = Shaddai Asimov Project  
 **Agent:** TURTLE — UI/UX & Creative  
-**Version:** 0.1 scaffold
+**Version:** 1.0 — implemented
+
+> This brief describes the shipped design. See [`README.md`](README.md) for how to run it
+> and [`forest_edutwin/README.md`](forest_edutwin/README.md) for the Gradio explainer.
+>
+> Changes from the 0.1 scaffold: the world plane is now **equirectangular at world scale**
+> (1 unit = 1 km), the Leaflet bridge is **two-way**, groves are **budgeted instanced meshes**
+> (≈5 200 trees, 2 draw calls), plot-twin props are **NVIDIA SimReady OpenUSD→GLB**, and the
+> explainer drawer runs a **local Ollama model** with a deterministic offline fallback.
 
 ## Vision
 A feel-first 3D urban forest canopy digital twin that maps Treegens Dashboard v2 claim data to a sacred-geometry forest. Users perceive carbon, health, and species distribution instantly through color, scale, and motion.
@@ -18,6 +26,7 @@ index.html
 styles.css   → CSS variables, Treegens tokens, signal-card accents
 main.js      → Three.js scene, OrbitControls, InstancedMesh, LOD, sacred placement
 adapter.js   → Treegens AirlinesDB.load() / getByClaim() → 3D attributes
+leaflet-bridge.js → Leaflet ⇄ Three.js camera sync + clustered claim markers
 ```
 
 ## Three.js Setup

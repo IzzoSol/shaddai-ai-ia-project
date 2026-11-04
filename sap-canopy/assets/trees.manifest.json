@@ -1,0 +1,106 @@
+{
+  "version": "1.0.0",
+  "description": "Asset manifest for the SAP Canopy digital twin + Forest EduTwin plot twin. Local-first: assets are vendored into assets/plot and assets/data; remote URLs are fallbacks only.",
+  "attribution": {
+    "simready": "NVIDIA SimReady Central (OpenUSD) - https://huggingface.co/datasets/nvidia/simready-assets",
+    "simready_glb": "codepawl/simready-glb - web-ready GLB conversions of nvidia/simready-assets",
+    "cadfs": "VladPyatov/CADFS - https://huggingface.co/datasets/VladPyatov/CADFS",
+    "cadgenbench": "HuggingAI4Engineering/cadgenbench-data - https://huggingface.co/datasets/HuggingAI4Engineering/cadgenbench-data",
+    "zero_to_cad": "0x3/Zero-To-CAD-1m - https://huggingface.co/datasets/0x3/Zero-To-CAD-1m (streamed, not vendored)",
+    "gaussian_splat": "GaussianWorld/scene_splat_49k - https://huggingface.co/datasets/GaussianWorld/scene_splat_49k (gated)",
+    "hi3d": "hi3d-official/Hi3Dv1.0 - https://huggingface.co/hi3d-official/Hi3Dv1.0",
+    "img2cad": "qq456cvb/img2cad - https://huggingface.co/qq456cvb/img2cad",
+    "qwen3d": "ccore/Qwen3.5-4B-3D-Coder - https://huggingface.co/ccore/Qwen3.5-4B-3D-Coder"
+  },
+  "plotTwin": {
+    "assets": [
+      {
+        "id": "simready_fence",
+        "label": "SimReady barrier fence (OpenUSD -> GLB)",
+        "file": "assets/plot/barrier_fence_metal_a02.glb",
+        "remote": "https://huggingface.co/datasets/codepawl/simready-glb/resolve/main/glb/barrier_fence_metal_a02.glb",
+        "usdSource": "nvidia/simready-assets :: barrier_fence_metal_a02/simready_usd",
+        "bytes": 204316,
+        "role": "plot-boundary",
+        "scale": 0.9,
+        "position": [-18, 0, -12],
+        "rotationY": 0.35,
+        "physics": { "static": true, "collision": "USD PhysX payload (from SimReady package)" }
+      },
+      {
+        "id": "simready_crate",
+        "label": "SimReady plywood crate (OpenUSD -> GLB) - used as planter box",
+        "file": "assets/plot/crate_plywood_a04.glb",
+        "remote": "https://huggingface.co/datasets/codepawl/simready-glb/resolve/main/glb/crate_plywood_a04.glb",
+        "usdSource": "nvidia/simready-assets :: crate_plywood_a04/simready_usd",
+        "bytes": 375716,
+        "role": "planter",
+        "scale": 1.0,
+        "position": [14, 0, 9],
+        "rotationY": -0.2,
+        "physics": { "static": true, "collision": "USD PhysX payload (from SimReady package)" }
+      },
+      {
+        "id": "simready_bin",
+        "label": "SimReady waste bin (OpenUSD -> GLB) - street furniture",
+        "file": "assets/plot/bin_waste_a01.glb",
+        "remote": "https://huggingface.co/datasets/codepawl/simready-glb/resolve/main/glb/bin_waste_a01.glb",
+        "usdSource": "nvidia/simready-assets :: bin_waste_a01/simready_usd",
+        "bytes": 370736,
+        "role": "street-furniture",
+        "scale": 1.0,
+        "position": [10, 0, 14],
+        "rotationY": 0.1,
+        "physics": { "static": true, "collision": "USD PhysX payload (from SimReady package)" }
+      }
+    ],
+    "proceduralTrees": [
+      {
+        "id": "mangrove",
+        "label": "Mangrove (procedural low-poly, instanced)",
+        "generator": "mangrove",
+        "canopyColor": 0x2e7d32,
+        "trunkColor": 0x4e342e
+      },
+      {
+        "id": "streetTree",
+        "label": "Urban street tree (procedural low-poly, instanced)",
+        "generator": "streetTree",
+        "canopyColor": 0x66bb6a,
+        "trunkColor": 0x5d4037
+      }
+    ]
+  },
+  "datasets": {
+    "cadSequenceSample": {
+      "file": "assets/data/CADFS_test.json",
+      "remote": "https://huggingface.co/datasets/VladPyatov/CADFS/resolve/main/cadfs/test_data/CADFS_test.json",
+      "use": "Lightweight parametric CAD sample index. Real CAD geometry streams from 0x3/Zero-To-CAD-1m via the HF streaming API (no full download)."
+    },
+    "cadgenbenchEdit": {
+      "file": "assets/data/cadgenbench_246_edit_description.txt",
+      "remote": "https://huggingface.co/datasets/HuggingAI4Engineering/cadgenbench-data/resolve/main/246/edit_description.txt",
+      "use": "Text-to-CAD edit prompt sample used to seed the local code-coder assistant prompt."
+    },
+    "gaussianStats": {
+      "file": null,
+      "remote": "https://huggingface.co/datasets/GaussianWorld/scene_splat_49k/resolve/main/statistics/arkitscenes_3dgs_runs.csv",
+      "use": "Optional. Gated dataset - only fetched when HF_TOKEN is present."
+    }
+  },
+  "models": {
+    "ollama": {
+      "recommended": ["qwen2.5:1.5b", "qwen2.5:3b", "gemma2:2b", "phi3:mini"],
+      "endpoint": "http://localhost:11434",
+      "note": "Runs fully on-device. No cloud inference. Fits 8GB RAM."
+    },
+    "transformers4bit": {
+      "recommended": ["Qwen/Qwen2.5-1.5B-Instruct", "google/gemma-2-2b-it"],
+      "note": "Load with bitsandbytes 4-bit (load_in_4bit=True). Only if Ollama is unavailable."
+    },
+    "codeCoder": {
+      "id": "ccore/Qwen3.5-4B-3D-Coder",
+      "note": "Used only for generating Three.js scene code in the 'build a scene' chat tool. 4-bit quantized."
+    }
+  }
+}

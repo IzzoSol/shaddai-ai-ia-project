@@ -1,0 +1,10 @@
+gradio>=4.19
+plotly>=5.22
+numpy>=1.26
+requests>=2.32
+huggingface_hub>=0.24
+# optional extras
+# datasets>=2.20        # streaming Zero-To-CAD-1m rows (hf_sample_fetch.py --stream)
+# transformers>=4.40    # 4-bit local model fallback (bitsandbytes)
+# bitsandbytes>=0.43    # 4-bit NF4 quantization on CUDA
+# matplotlib>=3.8       # static chart export

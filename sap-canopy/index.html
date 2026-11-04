@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SAP Canopy • Shaddai Asimov Project - Urban Forest Digital Twin</title>
+<title>SAP Canopy • Shaddai Asimov Project — Urban Forest Digital Twin</title>
 <link rel="preconnect" href="https://unpkg.com">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <link rel="stylesheet" href="styles.css">
 <script type="importmap">
 {
@@ -14,6 +17,8 @@
   }
 }
 </script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" defer></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js" defer></script>
 </head>
 <body>
 <div id="app">
@@ -23,9 +28,11 @@
       <span>SAP CANOPY</span>
       <span class="badge">TURTLE • Treegens v2</span>
     </div>
-    <div style="margin-left:auto;display:flex;gap:8px">
-      <button class="pill">Sacred Geometry: Metatron</button>
-      <button class="pill">LOD: Active</button>
+    <div class="topbar-right">
+      <span class="pill ghost" id="kpi-source">TREEGENS</span>
+      <span class="pill ghost" id="zoom-readout">z2</span>
+      <span class="pill ghost">LOD: Budgeted</span>
+      <span class="pill ghost">Local-first</span>
     </div>
   </header>
 
@@ -33,60 +40,82 @@
     <div class="card">
       <h3>Live Metrics</h3>
       <div class="metric"><span>Carbon Sequestered</span><span class="kpi" id="kpi-carbon">—</span></div>
-      <div class="metric"><span>Trees Rendered</span><span class="kpi" id="kpi-trees">—</span></div>
-      <div class="metric"><span>Avg Health</span><span class="kpi" id="kpi-health">—</span></div>
+      <div class="metric"><span>Stems Funded</span><span class="kpi" id="kpi-trees">—</span></div>
+      <div class="metric"><span>Claims</span><span class="kpi" id="kpi-claims">—</span></div>
+      <div class="metric"><span>Avg Establishment</span><span class="kpi" id="kpi-health">—</span></div>
+      <div class="metric"><span>Instances Rendered</span><span class="kpi dim" id="kpi-rendered">—</span></div>
+      <p class="caveat">Illustrative averages derived from Treegens sponsorship claims — not site-specific predictions.</p>
     </div>
 
     <div class="card">
       <h3>Treegens Link</h3>
       <div class="controls">
-        <input id="claim-id" placeholder="Claim ID e.g. CLAIM-001" style="padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text)"/>
-        <button class="btn" id="focus-claim">Focus Tree</button>
+        <input id="claim-id" placeholder="Claim ID or airline e.g. airline_1" />
+        <button class="btn" id="focus-claim">Focus Claim</button>
         <button class="btn secondary" id="reload-db">Reload AirlinesDB</button>
       </div>
+      <p class="hint">Reads <code>window.AirlinesDB</code> → <code>localStorage.treegensAirlines</code> → <code>?treegens=…</code> endpoint → offline seed.</p>
     </div>
 
     <div class="card">
       <h3>Rendering</h3>
       <div class="controls">
-        <label>Tree Density</label>
-        <input class="range" id="density" type="range" min="200" max="2000" value="800">
-        <label>Canopy Opacity</label>
+        <label>Tree Density <span class="val" id="density-val">800</span></label>
+        <input class="range" id="density" type="range" min="120" max="2000" value="800">
+        <label>Canopy Opacity <span class="val" id="opacity-val">0.80</span></label>
         <input class="range" id="opacity" type="range" min="0.3" max="1" step="0.05" value="0.8">
       </div>
     </div>
 
     <div class="card">
       <h3>Sacred Placement</h3>
-      <p style="font-size:12px;color:var(--muted)">Fibonacci spiral & Metatron's cube drive instancing. Health modulates color via CSS tokens --accent/#4caf50 and --gold/#ffd54f.</p>
-      <button class="btn secondary" id="toggle-geometry">Toggle Sacred Nodes</button>
+      <p class="hint">Fibonacci spiral + Metatron's cube drive grove placement. Health modulates color via
+        <code>--accent/#4caf50</code> and <code>--gold/#ffd54f</code>.</p>
+      <div class="controls">
+        <button class="btn secondary" id="toggle-geometry">Show Sacred Nodes</button>
+        <button class="btn secondary" id="btn-plot">Jump to Plot Twin</button>
+      </div>
     </div>
   </aside>
 
-  <main class="viewer">
+  <main class="viewer" id="viewer">
     <canvas id="three-canvas"></canvas>
     <div id="leaflet-overlay"></div>
     <div class="map-controls">
-      <button class="pill">Map</button>
-      <button class="pill">3D</button>
+      <button class="pill active" id="btn-map">Map</button>
+      <button class="pill" id="btn-3d">3D</button>
     </div>
     <div class="hud">
       <span class="chip">InstancedMesh</span>
-      <span class="chip">LOD Active</span>
+      <span class="chip">SimReady Plot Twin</span>
       <span class="chip">Treegens DB</span>
+      <span class="chip">Ollama explainer</span>
     </div>
     <div id="tooltip" class="tooltip" style="display:none"></div>
   </main>
+
+  <aside class="drawer">
+    <div class="card drawer-card">
+      <h3 id="panel-title">Asimov Explainer</h3>
+      <div id="panel-body">
+        <p class="hint">Select a claim (click a marker or a grove) to inspect it, or ask the local model.</p>
+        <p class="hint">The explainer runs entirely on-device via Ollama. Nothing leaves this machine.</p>
+      </div>
+      <form id="ask-form" class="ask-form">
+        <input id="ask-input" placeholder="Why does this grove matter?" autocomplete="off" />
+        <button class="btn" type="submit">Ask</button>
+      </form>
+      <button class="btn secondary full" id="ask-quick">Quick walkthrough</button>
+      <p class="caveat">Always: illustrative averages, not site-specific predictions. Treegens Proof of Tree verifies;
+        NVIDIA Omniverse/Cosmos twins are the high-fidelity counterpart.</p>
+    </div>
+  </aside>
 </div>
 
 <script type="module" src="main.js"></script>
 <script>
-// Minimal UI wiring for demo
-document.getElementById('reload-db').addEventListener('click', ()=> location.reload());
-document.getElementById('focus-claim').addEventListener('click', ()=>{
-  const id = document.getElementById('claim-id').value.trim();
-  if(id) alert(`Focus request for ${id} — hook into SAP adapter.getByClaim()`);
-});
+document.getElementById('density').addEventListener('input', e => document.getElementById('density-val').textContent = e.target.value);
+document.getElementById('opacity').addEventListener('input', e => document.getElementById('opacity-val').textContent = Number(e.target.value).toFixed(2));
 </script>
 </body>
 </html>

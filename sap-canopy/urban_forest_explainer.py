@@ -6,6 +6,26 @@ Educational mini-sim: 15-year canopy growth, carbon impact estimates, natural-la
 Runs on modest hardware. No external API required.
 
 Author: TURTLE design / Shaddai Asimov Project
+
+--------------------------------------------------------------------------
+DEPRECATED — SUPERSEDED BY ``forest_edutwin/app.py``
+--------------------------------------------------------------------------
+This was the first prototype of the explainer. It is kept for provenance only.
+
+Use instead:  ``python forest_edutwin/app.py``  (http://127.0.0.1:7860)
+
+Why the successor is better:
+  * Deterministic, calibrated growth model in ``scenarios.py`` (survival, Weibull-ish
+    height, crown radius, overlap-aware canopy cover, allometric carbon) instead of
+    the ad-hoc per-species factors used here.
+  * Plotly charts on the TREEGENS palette instead of matplotlib PNG blobs.
+  * A local-model narration layer (Ollama / transformers-4bit / template fallback)
+    that is always caveated with "illustrative averages, not site-specific predictions".
+  * The Asimov agent tool suite (compare, explain-metric, planting plan, impact story,
+    Three.js scene code) and the NVIDIA SimReady 3D plot twin.
+  * CSV calibration upload so the curves can be grounded in published graphs.
+
+Everything here still works, but new work should target ``forest_edutwin/``.
 """
 
 import gradio as gr

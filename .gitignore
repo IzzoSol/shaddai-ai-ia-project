@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Gradio / local runtime
+.gradio/
+.gradio_cache/
+flagged/
+*_run.out
+*_run.err
+_run.out
+_run.err
+*.log
+
+# Model caches (local-only, never commit weights)
+.cache/
+models/
+*.gguf
+*.safetensors
+*.bin
+*.pt
+*.pth
+
+# Hugging Face cache
+huggingface/
+hf_cache/
+
+# Node / frontend
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.vite/
+.cache/
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local scratch
+_tmp/
+tmp/
+*.tmp
+*.bak
+scratch/
+
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json

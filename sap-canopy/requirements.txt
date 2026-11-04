@@ -1,2 +1,8 @@
+# Legacy prototype requirements (matplotlib-based `urban_forest_explainer.py`).
+#
+# The current app lives in ./forest_edutwin/ — use ITS requirements file instead:
+#     pip install -r forest_edutwin/requirements.txt
+#     python forest_edutwin/app.py
+#
 gradio>=4.19
 matplotlib>=3.8
