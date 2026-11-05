@@ -207,7 +207,7 @@ td.mono{font-family:var(--mono);font-size:13px}
 .yes{color:var(--accent);font-weight:700} .no{color:var(--amber);font-weight:700}
 
 /* ---------- nvidia stack ---------- */
-.nv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.nv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
 .nv{border:1px solid var(--border);border-radius:11px;padding:15px;background:rgba(255,255,255,.022)}
 .nv-c{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--data);margin-bottom:8px}
 .nv-t{font-weight:700;font-size:14px;margin-bottom:5px}
@@ -775,8 +775,8 @@ footer li{margin-bottom:6px}
     </div>
     <div class="nv-counts">
       <div class="nvcount"><b>48</b><span>skills installed</span></div>
-      <div class="nvcount"><b>19</b><span>run as-is, no GPU</span></div>
-      <div class="nvcount"><b>29</b><span>need an NVIDIA GPU to execute</span></div>
+      <div class="nvcount"><b>23</b><span>run as-is, no GPU</span></div>
+      <div class="nvcount"><b>25</b><span>need an NVIDIA GPU to execute</span></div>
       <div class="nvcount"><b>8</b><span>install locations</span></div>
     </div>
     <div class="nv-grid">
@@ -797,7 +797,7 @@ footer li{margin-bottom:6px}
       </div>
       <div class="nv">
         <div class="nv-c">cosmos</div>
-        <div class="nv-t">Cosmos Predict</div>
+        <div class="nv-t">Cosmos, 1 skill</div>
         <p class="nv-d">Video generation for the narration layer, so the physical-AI story is told in motion rather than only in charts.</p>
       </div>
       <div class="nv">
@@ -817,17 +817,22 @@ footer li{margin-bottom:6px}
       </div>
       <div class="nv">
         <div class="nv-c">meta</div>
-        <div class="nv-t">Meta, 4 skills</div>
-        <p class="nv-d">The skill finder routes any NVIDIA request to the right skill, the skill-card generator gives each one a reviewable governance card, and data-designer designs the SAP dataset schema.</p>
+        <div class="nv-t">Meta, 3 skills</div>
+        <p class="nv-d">The skill finder routes any NVIDIA request to the right skill, the skill-card generator gives each one a reviewable governance card, and the GPU-assist skill covers display and performance settings once real hardware is attached.</p>
+      </div>
+      <div class="nv">
+        <div class="nv-c">data</div>
+        <div class="nv-t">Data, 1 skill</div>
+        <p class="nv-d">The dataset designer lays out the schema behind the twin - forest growth, carbon and plot records - so synthetic and reference data share one contract with the live model.</p>
       </div>
     </div>
     <div class="caveat">
       <h4>This machine has no NVIDIA GPU</h4>
       <p>
         The host is a ThinkPad with an <b>Intel HD Graphics 620</b> and 1 GB of VRAM. There are
-        <b>no NVIDIA devices</b> in the hardware inventory. So the 29 GPU-flagged skills are installed
+        <b>no NVIDIA devices</b> in the hardware inventory. So the 25 GPU-flagged skills are installed
         and usable as <b>documentation and workflow design</b> today, but their model steps cannot run
-        locally until a real NVIDIA GPU is attached. The other 19 are pure knowledge and instruction
+        locally until a real NVIDIA GPU is attached. The other 23 are pure knowledge and instruction
         skills and work right now. This is also why TensorRT, the NVIDIA container toolkit and the
         NVIDIA Docker images were ruled out for this build.
       </p>
