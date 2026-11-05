@@ -170,7 +170,7 @@ def biomass_kg(scn: Scenario, t: float) -> float:
 def carbon_tonnes(scn: Scenario, t: float, area_ha: float, start_condition: float) -> float:
     """Cumulative carbon stored (t C) in the plot at year t."""
     stems = scn.stems_per_ha * area_ha * start_condition
-    alive = stems * survival(scn, t, start_condition)
+    alive = stems * survival(scn, t)
     b = biomass_kg(scn, t)
     return alive * b * scn.carbon_fraction / 1000.0
 

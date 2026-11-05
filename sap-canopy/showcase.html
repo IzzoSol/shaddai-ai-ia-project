@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>S.A.P. - Shaddai Asimov Project</title>
+<meta name="description" content="Shaddai Asimov Project: a local-first forest digital twin and a transparent green-initiative treasury where fees route to real trees and token liquidity.">
+<style>
+:root{
+  --accent:#4caf50; --gold:#ffd54f; --mangrove:#2e7d32; --urban:#66bb6a;
+  --bg:#121a22; --paper:#0b0f14; --text:#e6edf3; --muted:#9fb0c3;
+  --border:#223141; --data:#90caf9;
+  --red:#ef5350; --amber:#ffb74d;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --max:1180px; --r:14px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--text); font-family:var(--sans);
+  font-size:16px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%; display:block}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+.wrap{max-width:var(--max); margin:0 auto; padding:0 22px}
+code,pre{font-family:var(--mono)}
+.mono{font-family:var(--mono)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ---------- nav ---------- */
+.nav{
+  position:sticky; top:0; z-index:50; background:rgba(11,15,20,.86);
+  backdrop-filter:blur(12px); border-bottom:1px solid var(--border);
+}
+.nav-in{display:flex; align-items:center; gap:18px; height:58px}
+.brand{font-weight:800; letter-spacing:.14em; font-size:13px; color:var(--text); white-space:nowrap}
+.brand b{color:var(--accent)}
+.nav-links{display:flex; gap:4px; margin-left:auto; overflow-x:auto; scrollbar-width:none}
+.nav-links::-webkit-scrollbar{display:none}
+.nav-links a{
+  color:var(--muted); font-size:13px; padding:7px 11px; border-radius:8px; white-space:nowrap;
+}
+.nav-links a:hover{color:var(--text); background:rgba(76,175,80,.12); text-decoration:none}
+.nav-cta{
+  background:var(--accent); color:#06210a !important; font-weight:700; padding:7px 14px !important;
+}
+.nav-cta:hover{background:#61c765 !important}
+
+/* ---------- hero ---------- */
+.hero{
+  position:relative; overflow:hidden; padding:74px 0 56px;
+  border-bottom:1px solid var(--border);
+  background:
+    radial-gradient(900px 420px at 12% -12%, rgba(76,175,80,.20), transparent 62%),
+    radial-gradient(760px 380px at 92% 8%, rgba(255,213,79,.11), transparent 60%),
+    linear-gradient(180deg,#0b0f14 0%, var(--bg) 100%);
+}
+.hero::after{
+  content:""; position:absolute; inset:auto 0 0 0; height:120px; pointer-events:none;
+  background:repeating-linear-gradient(90deg,transparent 0 38px,rgba(76,175,80,.055) 38px 39px);
+}
+.hero-grid{display:grid; grid-template-columns:1.25fr .85fr; gap:48px; align-items:center}
+.eyebrow{
+  display:inline-flex; align-items:center; gap:9px; font-size:11px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--accent); font-weight:700;
+  border:1px solid rgba(76,175,80,.34); background:rgba(76,175,80,.09);
+  padding:6px 12px; border-radius:999px; margin-bottom:20px;
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(76,175,80,.18)}
+h1{
+  font-size:clamp(34px,5.4vw,60px); line-height:1.06; margin:0 0 18px; letter-spacing:-.025em; font-weight:800;
+}
+h1 .g{background:linear-gradient(100deg,var(--accent),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lede{font-size:18px;color:var(--muted);max-width:58ch;margin:0 0 26px}
+.lede b{color:var(--text);font-weight:600}
+.cta-row{display:flex; flex-wrap:wrap; gap:11px; margin-bottom:26px}
+.btn{
+  display:inline-flex; align-items:center; gap:8px; padding:12px 20px; border-radius:11px;
+  font-weight:650; font-size:14px; border:1px solid var(--border); color:var(--text);
+  background:rgba(255,255,255,.035); cursor:pointer;
+}
+.btn:hover{border-color:var(--accent); text-decoration:none; transform:translateY(-1px)}
+.btn-p{background:var(--accent); color:#06210a; border-color:var(--accent)}
+.btn-p:hover{background:#61c765; color:#06210a}
+.btn-g{color:var(--gold); border-color:rgba(255,213,79,.38); background:rgba(255,213,79,.07)}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{
+  font-size:11.5px; font-family:var(--mono); color:var(--muted);
+  border:1px solid var(--border); border-radius:7px; padding:5px 9px; background:rgba(255,255,255,.02);
+}
+.chip b{color:var(--accent); font-weight:600}
+
+/* hero stat panel */
+.panel{
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.015));
+  border:1px solid var(--border); border-radius:var(--r); padding:20px;
+}
+.panel-t{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:700}
+.stat{display:flex;align-items:baseline;gap:11px;padding:11px 0;border-top:1px solid rgba(34,49,65,.72)}
+.stat:first-of-type{border-top:0;padding-top:0}
+.stat-k{font-size:13px;color:var(--muted);flex:1}
+.stat-v{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--text)}
+.stat-v.g{color:var(--gold)} .stat-v.a{color:var(--accent)} .stat-v.b{color:var(--data)}
+
+/* ---------- sections ---------- */
+section{padding:68px 0;border-bottom:1px solid var(--border)}
+section:nth-of-type(even){background:var(--paper)}
+.sec-head{margin-bottom:34px;max-width:74ch}
+.kicker{font-size:11px;letter-spacing:.19em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:11px}
+h2{font-size:clamp(25px,3.3vw,37px);margin:0 0 12px;letter-spacing:-.02em;line-height:1.14;font-weight:800}
+.sec-head p{color:var(--muted);margin:0;font-size:16.5px}
+h3{font-size:18px;margin:0 0 9px;font-weight:700;letter-spacing:-.01em}
+
+/* ---------- cards ---------- */
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:17px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:17px}
+.card{
+  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012));
+  border:1px solid var(--border); border-radius:var(--r); padding:22px; position:relative; overflow:hidden;
+}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);opacity:.85}
+.card.gold::before{background:var(--gold)} .card.data::before{background:var(--data)}
+.card p{color:var(--muted);margin:0 0 14px;font-size:14.5px}
+.card ul{margin:0;padding-left:18px;color:var(--muted);font-size:14px}
+.card li{margin-bottom:5px}
+.card li b{color:var(--text);font-weight:600}
+.tag{
+  display:inline-block;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--accent);border:1px solid rgba(76,175,80,.3);background:rgba(76,175,80,.08);
+  padding:3px 8px;border-radius:6px;margin-bottom:12px;
+}
+.tag.gold{color:var(--gold);border-color:rgba(255,213,79,.3);background:rgba(255,213,79,.07)}
+.tag.data{color:var(--data);border-color:rgba(144,202,249,.3);background:rgba(144,202,249,.07)}
+
+/* ---------- fee routing flow ---------- */
+.flow{
+  border:1px solid var(--border); border-radius:var(--r); padding:24px;
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
+}
+.flow-src{
+  border:1px dashed rgba(144,202,249,.42); border-radius:12px; padding:16px 18px; margin-bottom:6px;
+  background:rgba(144,202,249,.05);
+}
+.flow-src h4{margin:0 0 5px;font-size:14px;color:var(--data);font-weight:700;letter-spacing:.02em}
+.flow-src p{margin:0;font-size:13.5px;color:var(--muted)}
+.flow-rail{height:26px;width:2px;background:linear-gradient(180deg,rgba(144,202,249,.5),rgba(76,175,80,.5));margin:0 auto}
+.flow-row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.flow-node{border:1px solid var(--border);border-radius:12px;padding:17px;background:rgba(0,0,0,.22);position:relative}
+.flow-node::before{
+  content:"";position:absolute;top:-15px;left:50%;width:2px;height:14px;transform:translateX(-50%);
+  background:rgba(76,175,80,.5);
+}
+.flow-node.trees{border-color:rgba(76,175,80,.42)}
+.flow-node.liq{border-color:rgba(255,213,79,.42)}
+.flow-node.plat{border-color:rgba(144,202,249,.42)}
+.fn-pct{font-family:var(--mono);font-size:30px;font-weight:800;line-height:1;margin-bottom:9px}
+.fn-pct.trees{color:var(--accent)} .fn-pct.liq{color:var(--gold)} .fn-pct.plat{color:var(--data)}
+.fn-name{font-weight:700;font-size:14.5px;margin-bottom:6px}
+.fn-desc{font-size:13px;color:var(--muted);margin:0 0 10px;line-height:1.5}
+.fn-bar{height:7px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
+.fn-bar i{display:block;height:100%;border-radius:99px}
+.fn-bar i.trees{width:40%;background:linear-gradient(90deg,#2e7d32,#4caf50)}
+.fn-bar i.liq{width:40%;background:linear-gradient(90deg,#c9a227,#ffd54f)}
+.fn-bar i.plat{width:20%;background:linear-gradient(90deg,#4a7fa5,#90caf9)}
+.fn-foot{margin-top:9px;font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+/* ---------- live panel ---------- */
+.live-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.live-dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+.live-dot.on{background:var(--accent);box-shadow:0 0 0 4px rgba(76,175,80,.16)}
+.live-dot.off{background:var(--amber);box-shadow:0 0 0 4px rgba(255,183,77,.16)}
+.live-state{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+.live-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.live-card{border:1px solid var(--border);border-radius:12px;padding:16px;background:rgba(255,255,255,.025)}
+.lc-k{font-size:12px;color:var(--muted);margin-bottom:8px}
+.lc-v{font-family:var(--mono);font-size:23px;font-weight:700;color:var(--text);line-height:1.1}
+.lc-v small{font-size:12px;color:var(--muted);font-weight:400}
+.lc-sub{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:7px}
+.live-note{
+  margin-top:15px;font-size:12.5px;color:var(--muted);font-family:var(--mono);
+  border-left:2px solid var(--border);padding-left:12px;
+}
+
+/* ---------- gallery ---------- */
+.gallery{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.shot{
+  border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--paper);
+  display:flex;flex-direction:column;
+}
+.shot.wide{grid-column:1/-1}
+.shot-img{background:#0d141c;border-bottom:1px solid var(--border)}
+.shot-img img{width:100%;height:auto}
+.shot-body{padding:15px 17px}
+.shot-body h4{margin:0 0 6px;font-size:14.5px;font-weight:700}
+.shot-body p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.55}
+.shot-body code{font-size:12px;color:var(--gold)}
+
+/* ---------- tables ---------- */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+th,td{padding:12px 15px;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:700;background:rgba(255,255,255,.022)}
+tr:last-child td{border-bottom:0}
+td.mono{font-family:var(--mono);font-size:13px}
+.yes{color:var(--accent);font-weight:700} .no{color:var(--amber);font-weight:700}
+
+/* ---------- nvidia stack ---------- */
+.nv-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
+.nv{border:1px solid var(--border);border-radius:11px;padding:15px;background:rgba(255,255,255,.022)}
+.nv-c{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--data);margin-bottom:8px}
+.nv-t{font-weight:700;font-size:14px;margin-bottom:5px}
+.nv-d{font-size:12.5px;color:var(--muted);margin:0;line-height:1.5}
+.nv-counts{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:20px}
+.nvcount{border:1px solid var(--border);border-radius:11px;padding:15px;text-align:center;background:rgba(255,255,255,.022)}
+.nvcount b{display:block;font-family:var(--mono);font-size:26px;color:var(--accent);line-height:1.1}
+.nvcount span{font-size:12px;color:var(--muted)}
+
+/* ---------- caveat + footer ---------- */
+.caveat{
+  border:1px solid rgba(255,183,77,.3); background:rgba(255,183,77,.06);
+  border-radius:var(--r); padding:20px 22px; margin-top:26px;
+}
+.caveat h4{margin:0 0 8px;font-size:13px;letter-spacing:.11em;text-transform:uppercase;color:var(--amber)}
+.caveat p{margin:0;font-size:14.5px;color:var(--muted);line-height:1.65}
+.caveat b{color:var(--text)}
+footer{padding:52px 0;background:var(--paper)}
+.f-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:34px}
+footer h5{margin:0 0 11px;font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);font-weight:700}
+footer p,footer li{font-size:13.5px;color:var(--muted);line-height:1.65}
+footer ul{list-style:none;padding:0;margin:0}
+footer li{margin-bottom:6px}
+.foot-bot{
+  margin-top:34px;padding-top:22px;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11.5px;color:var(--muted);
+}
+.fine{font-family:var(--mono);font-size:11.5px;color:var(--muted);line-height:1.7}
+
+/* ---------- responsive ---------- */
+@media (max-width:1000px){
+  .hero-grid{grid-template-columns:1fr;gap:34px}
+  .grid3,.grid2,.flow-row,.gallery{grid-template-columns:1fr}
+  .live-grid,.nv-grid,.nv-counts{grid-template-columns:repeat(2,1fr)}
+  .f-grid{grid-template-columns:1fr}
+  .shot.wide{grid-column:auto}
+}
+@media (max-width:560px){
+  .live-grid,.nv-grid,.nv-counts{grid-template-columns:1fr}
+  .wrap{padding:0 16px}
+  section{padding:50px 0}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="wrap nav-in">
+    <div class="brand">S<b>.</b>A<b>.</b>P</div>
+    <div class="nav-links">
+      <a href="#what">What it is</a>
+      <a href="#routing">Fee routing</a>
+      <a href="#treasury">Treasury</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#calibration">Calibration</a>
+      <a href="#plots">Plots</a>
+      <a href="#venues">Venues</a>
+      <a href="#stack">NVIDIA stack</a>
+      <a class="nav-cta" href="index.html">Open the 3D twin</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow"><span class="dot"></span> Shaddai Asimov Project</div>
+      <h1>A forest that <span class="g">shows its work</span><br>and a treasury that shows its routing.</h1>
+      <p class="lede">
+        S.A.P. pairs a <b>local-first forest digital twin</b> with a <b>transparent green-initiative treasury</b>.
+        Every projected canopy curve is calibrated against published growth graphs and verifiable on disk.
+        Every fee is split by a published policy and can be read back cent by cent.
+        Nothing leaves the machine, and nothing is claimed as a site-specific forecast.
+      </p>
+      <div class="cta-row">
+        <a class="btn btn-p" href="index.html">Launch the 3D twin &rarr;</a>
+        <a class="btn" href="forest_edutwin/static/plot_twin.html">Open the mini twin</a>
+        <a class="btn btn-g" href="#evidence">See the calibration proof</a>
+      </div>
+      <div class="chips">
+        <span class="chip"><b>8GB</b> target ThinkPad</span>
+        <span class="chip"><b>0</b> cloud calls for the model</span>
+        <span class="chip"><b>43</b> treasury tests green</span>
+        <span class="chip"><b>250</b> backend tests green</span>
+        <span class="chip">NVIDIA SimReady assets</span>
+        <span class="chip">Treegens Proof of Tree</span>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-t">Year 15 endpoints, 1 hectare</div>
+      <div class="stat"><span class="stat-k">Mangrove canopy cover</span><span class="stat-v a">88.1%</span></div>
+      <div class="stat"><span class="stat-k">Mangrove carbon stored</span><span class="stat-v g">426 tCO2e/ha</span></div>
+      <div class="stat"><span class="stat-k">Urban street canopy cover</span><span class="stat-v b">45.5%</span></div>
+      <div class="stat"><span class="stat-k">Urban carbon stored</span><span class="stat-v b">126 tCO2e/ha</span></div>
+      <div class="stat"><span class="stat-k">Fee split (default)</span><span class="stat-v">40/40/20</span></div>
+      <div class="stat"><span class="stat-k">Trees / liquidity / platform</span><span class="stat-v" style="font-size:13px">bps, sums to 10000</span></div>
+      <p style="margin:14px 0 0;font-size:12px;color:var(--muted);line-height:1.5">
+        Illustrative averages, not site-specific predictions.
+      </p>
+    </div>
+  </div>
+</header>
+
+<section id="what">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">01 / The stack</div>
+      <h2>Three pieces that already work together</h2>
+      <p>
+        The twin, the model and the treasury are not a pitch deck. Each is running code with tests
+        behind it. Here is what each one is responsible for.
+      </p>
+    </div>
+    <div class="grid3">
+      <div class="card">
+        <span class="tag">EduTwin</span>
+        <h3>Forest growth digital twin</h3>
+        <p>A Three.js and Leaflet twin where a Treegens claim becomes an instanced grove on a real map.</p>
+        <ul>
+          <li><b>~5,200</b> instanced trees, 2 draw calls</li>
+          <li><b>~5,000</b> clustered Leaflet markers</li>
+          <li>Pixel ratio capped at <b>1.75</b></li>
+          <li>Camera sync both ways between map and 3D</li>
+          <li>NVIDIA SimReady plot assets (OpenUSD to GLB)</li>
+        </ul>
+      </div>
+      <div class="card data">
+        <span class="tag data">Evidence</span>
+        <h3>Calibrated growth model</h3>
+        <p>The canopy and carbon curves are digitised from the published SAP graphs, then calibrated year by year.</p>
+        <ul>
+          <li>Per-year multiplicative factor <b>k(t)</b></li>
+          <li>Year 0 is exactly <b>0% canopy / 0 t</b></li>
+          <li>Years 1-15 drift <b>0.0000</b></li>
+          <li>Endpoint error within <b>0.07pp / 0.92 tCO2e/ha</b></li>
+          <li>10 hectare area scales <b>linearly</b></li>
+          <li>Half-stocking yields <b>65.20%</b> of full</li>
+        </ul>
+      </div>
+      <div class="card gold">
+        <span class="tag gold">Treasury</span>
+        <h3>Fee routing and tree payments</h3>
+        <p>Integer-cent pools, an idempotent ledger, and a fee split published in basis points.</p>
+        <ul>
+          <li><b>40%</b> tree fund, to Treegens for planting</li>
+          <li><b>40%</b> $ASIMOV liquidity</li>
+          <li><b>20%</b> platform revenue</li>
+          <li>No lost cents: the remainder lands in platform</li>
+          <li>Idempotent on <b>attributionId</b></li>
+          <li>Records settlement <b>intent</b>, never custody</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="routing">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">02 / Fee routing</div>
+      <h2>"Fees to liquidity of the coin" - written down, in basis points</h2>
+      <p>
+        The routing rule is not a slogan and not a promise. It is a stored policy with three integer
+        buckets, a public read endpoint, and a split function that cannot lose or invent a cent.
+        Change it with three environment variables and the sums must still total 10000 bps or the
+        service refuses to start.
+      </p>
+    </div>
+    <div class="flow">
+      <div class="flow-src">
+        <h4>Any settled fee enters the splitter</h4>
+        <p>
+          Integer cents in, three integer buckets out. <code>splitByPolicy(amountCents, policy)</code>
+          floors the tree and liquidity buckets, then gives the remainder to platform, so the three
+          parts always sum exactly to the input amount.
+        </p>
+      </div>
+      <div class="flow-rail"></div>
+      <div class="flow-row">
+        <div class="flow-node trees">
+          <div class="fn-pct trees">40%</div>
+          <div class="fn-name">Tree fund</div>
+          <p class="fn-desc">Paid to Treegens for real planting and verification of the funded stems.</p>
+          <div class="fn-bar"><i class="trees"></i></div>
+          <div class="fn-foot">pool: eco</div>
+        </div>
+        <div class="flow-node liq">
+          <div class="fn-pct liq">40%</div>
+          <div class="fn-name">$ASIMOV liquidity</div>
+          <p class="fn-desc">Deepens the liquidity of the $ASIMOV coin itself, on Solana, where the mint already lives.</p>
+          <div class="fn-bar"><i class="liq"></i></div>
+          <div class="fn-foot">pool: asimovLiquidity</div>
+        </div>
+        <div class="flow-node plat">
+          <div class="fn-pct plat">20%</div>
+          <div class="fn-name">Platform</div>
+          <p class="fn-desc">Runs the platform: the twin, the EduTwin, the agent council and the free tier.</p>
+          <div class="fn-bar"><i class="plat"></i></div>
+          <div class="fn-foot">pool: treasury</div>
+        </div>
+      </div>
+      <div class="live-note">
+        Default policy: treeFundBps 4000 / asimovLiquidityBps 4000 / platformBps 2000.
+        Override with SAP_TREE_FUND_BPS, SAP_ASIMOV_LIQUIDITY_BPS, SAP_PLATFORM_BPS.
+      </div>
+    </div>
+
+    <div class="grid3" style="margin-top:20px">
+      <div class="card">
+        <span class="tag">Why trees first</span>
+        <p>
+          The tree fund is a <b>payment for planting and verification services already rendered</b>.
+          That framing keeps it outside securities territory, because the buyer receives a real
+          outcome (a planted, verified stem) rather than a promise of appreciation.
+        </p>
+      </div>
+      <div class="card gold">
+        <span class="tag gold">Why no custody</span>
+        <p>
+          The treasury records <b>settlement intent</b>. A human-reviewed settler executes it.
+          No HTTP route can place an order, and no route can move a user's own funds through our pool.
+          There is deliberately no <code>payout</code>, <code>withdraw</code> or <code>transfer</code> method.
+        </p>
+      </div>
+      <div class="card data">
+        <span class="tag data">Why idempotent</span>
+        <p>
+          Every settlement is keyed on <b>attributionId</b>. A retried webhook, a double click, or a
+          replayed queue message settles once. The ledger write is atomic against the JSON store.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="treasury">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">03 / Transparency</div>
+      <h2>Read the ledger back</h2>
+      <p>
+        The live panel below queries the running backend. If the API is not up, the page falls back to
+        the shipped defaults and says so plainly rather than pretending.
+      </p>
+    </div>
+    <div class="live-head">
+      <span class="live-dot" id="ldot"></span>
+      <span class="live-state" id="lstate">checking backend...</span>
+      <span class="chip mono" id="lurl">/api/sap/treasury/report</span>
+    </div>
+    <div class="live-grid">
+      <div class="live-card">
+        <div class="lc-k">Tree fund accrued</div>
+        <div class="lc-v" id="lc-tree">-</div>
+        <div class="lc-sub">pool: eco</div>
+      </div>
+      <div class="live-card">
+        <div class="lc-k">$ASIMOV liquidity accrued</div>
+        <div class="lc-v" id="lc-liq">-</div>
+        <div class="lc-sub">pool: asimovLiquidity</div>
+      </div>
+      <div class="live-card">
+        <div class="lc-k">Platform accrued</div>
+        <div class="lc-v" id="lc-plat">-</div>
+        <div class="lc-sub">pool: treasury</div>
+      </div>
+      <div class="live-card">
+        <div class="lc-k">Tree payments recorded</div>
+        <div class="lc-v" id="lc-pays">-</div>
+        <div class="lc-sub">on-chain intents queued</div>
+      </div>
+    </div>
+    <div class="live-note" id="lnote">Loading transparency report...</div>
+    <div class="tbl-wrap" style="margin-top:22px">
+      <table>
+        <thead><tr><th>Pool</th><th>Purpose</th><th>Destination</th><th>Policy share</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">eco</td><td>Real tree planting and verification</td><td class="mono">Treegens</td><td class="mono">40%</td></tr>
+          <tr><td class="mono">asimovLiquidity</td><td>Depth for the $ASIMOV coin</td><td class="mono">Solana pool</td><td class="mono">40%</td></tr>
+          <tr><td class="mono">treasury</td><td>Platform operations</td><td class="mono">Internal</td><td class="mono">20%</td></tr>
+          <tr><td class="mono">owner</td><td>Creator share</td><td class="mono">Creator</td><td class="mono">n/a</td></tr>
+          <tr><td class="mono">referrer</td><td>Referral flywheel</td><td class="mono">Referrer</td><td class="mono">n/a</td></tr>
+          <tr><td class="mono">partner</td><td>Partner allocations</td><td class="mono">Partner</td><td class="mono">n/a</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="caveat">
+      <h4>Three compliance gates we are not stepping over</h4>
+      <p>
+        <b>1.</b> Hyperliquid geoblocks United States residents, so the US audience cannot be routed
+        through it by default. &nbsp;<b>2.</b> A token-linked rewards programme attracts a Howey
+        analysis, so tree payments are structured as payment for services rendered, not as investment
+        returns. &nbsp;<b>3.</b> We do not take custody and we do not route a user's own flow through
+        our own pool - the treasury records intent and a reviewed human executes.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="evidence">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">04 / Evidence</div>
+      <h2>The charts are rendered from the calibrated model, not drawn by hand</h2>
+      <p>
+        Every figure below was produced by <code>forest_edutwin/tools/render_demo.py</code> running
+        against the live calibrated model and the digitised reference graphs. The footer line on each
+        chart is baked into the render, not added by the web page.
+      </p>
+    </div>
+    <div class="gallery">
+      <div class="shot">
+        <div class="shot-img"><img src="assets/demo/canopy_growth.png" alt="15-year canopy growth projection for mangrove restoration and urban street canopy, showing solid calibrated model lines against dotted digitised published SAP graphs." loading="lazy"></div>
+        <div class="shot-body">
+          <h4>Canopy growth, 1 hectare, 15 years</h4>
+          <p>
+            Mangrove restoration reaches <b>88.1%</b> canopy cover by year 15; urban street canopy
+            reaches <b>45.5%</b>. The dotted lines are the published SAP graphs, digitised. The solid
+            lines are the calibrated model. They sit on top of each other.
+          </p>
+        </div>
+      </div>
+      <div class="shot">
+        <div class="shot-img"><img src="assets/demo/cumulative_carbon.png" alt="Cumulative carbon storage curve over 15 years for mangrove restoration reaching 426 tonnes CO2 equivalent per hectare and urban street canopy reaching 126 tonnes." loading="lazy"></div>
+        <div class="shot-body">
+          <h4>Cumulative carbon stored</h4>
+          <p>
+            Carbon is integrated from the canopy curve rather than assumed. Mangrove stores
+            <b>426 tCO2e/ha</b> by year 15, urban stores <b>126 tCO2e/ha</b>. Area scales linearly,
+            so a 10 hectare plot is ten times the curve.
+          </p>
+        </div>
+      </div>
+      <div class="shot">
+        <div class="shot-img"><img src="assets/demo/growth_storyboard.png" alt="Four panel storyboard of mangrove restoration at day 0, year 5, year 10 and year 15 with canopy cover and carbon values." loading="lazy"></div>
+        <div class="shot-body">
+          <h4>Storyboard: day 0 to year 15</h4>
+          <p>
+            Day 0 is exactly <b>0.0% canopy and 0 tCO2e/ha</b> - nothing is planted, so nothing is
+            claimed. Year 5 <b>65.7% / 179 t</b>. Year 10 <b>83.1% / 317 t</b>. Year 15
+            <b>88.1% / 426 t</b>. This panel is the narration spine for the physical-AI story.
+          </p>
+        </div>
+      </div>
+      <div class="shot">
+        <div class="shot-img"><img src="assets/demo/year15_comparison.png" alt="Bar chart comparing year 15 endpoints: mangrove 88.1 percent canopy and 426 tonnes CO2e per hectare versus urban 45.5 percent and 126 tonnes." loading="lazy"></div>
+        <div class="shot-body">
+          <h4>Year 15 endpoint comparison</h4>
+          <p>
+            The headline pair, side by side. Mangrove roughly doubles urban canopy cover and more
+            than triples its carbon per hectare over the same 15-year window.
+          </p>
+        </div>
+      </div>
+      <div class="shot wide">
+        <div class="shot-img"><img src="assets/demo/calibration_proof.png" alt="Two-panel proof chart showing the raw model, the digitised published SAP graph and the calibrated model for both canopy cover and carbon, demonstrating that calibration is a correction factor rather than an overwrite." loading="lazy"></div>
+        <div class="shot-body">
+          <h4>The calibration proof: a correction factor, not an overwrite</h4>
+          <p>
+            Left panel is canopy, right panel is carbon. In each, three curves: the raw model, the
+            digitised published SAP graph, and the calibrated result the app actually shows. Calibration
+            multiplies the raw model by <code>k(t) = reference(t) / model_reference(t)</code> for each
+            year. It corrects the model, it does not replace it, and year 0 stays at zero.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="calibration">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">05 / Verification</div>
+      <h2>Three tools, one claim: the numbers are checkable</h2>
+      <p>
+        The reference data was digitised by hand from the published SAP graphs, then locked down by
+        three small Python tools that live next to the model. Anyone can rerun them.
+      </p>
+    </div>
+    <div class="grid3">
+      <div class="card data">
+        <span class="tag data">tools/digitize_reference.py</span>
+        <h3>Digitise the published graphs</h3>
+        <p>
+          Converts a hand-read point list into the canonical CSV. It <b>round-trips byte-identically</b>:
+          reading the CSV and writing it back produces the same bytes, so a silent edit to the
+          reference data cannot slip through.
+        </p>
+      </div>
+      <div class="card">
+        <span class="tag">tools/verify_calibration.py</span>
+        <h3>Prove the calibration holds</h3>
+        <p>
+          Runs the assertions that matter and exits non-zero on failure. Current result:
+          <b class="yes">PASS</b>. Years 1 to 15 drift <b>0.0000</b>; endpoints land within
+          <b>0.07 percentage points</b> of canopy and <b>0.92 tCO2e/ha</b> of carbon; 10 hectares
+          scales linearly; half-stocking yields <b>65.20%</b> of the full-stocking result.
+        </p>
+      </div>
+      <div class="card">
+        <span class="tag">tools/check_reference_current.py</span>
+        <h3>Check the reference is current</h3>
+        <p>
+          Confirms the digitised reference still matches the source it was taken from, so a stale
+          graph cannot quietly underpin a published number. Current result: <b class="yes">PASS</b>.
+        </p>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:20px">
+      <div class="card gold">
+        <span class="tag gold">What the twin does with Treegens data</span>
+        <p>
+          Treegens currently ships <b>no tree geometry</b> - no species, no lat/lng, no health, no
+          canopy, no carbon. The adapter fills that gap with a documented, deterministic rule set:
+          stems from <b>dealSize x phase</b>, health from <b>stage</b>, biome from <b>region</b>,
+          position from the Treegens region centroids. Every derived value is flagged
+          <code>derived: true</code> and labelled as illustrative.
+        </p>
+        <p style="margin-top:10px">
+          If a future Treegens schema ships real tree fields, they automatically win over the derivation.
+        </p>
+      </div>
+      <div class="card">
+        <span class="tag">Privacy posture</span>
+        <p>
+          The explainer asks a <b>local</b> model (Qwen2.5-1.5B, Gemma-2-2B or Phi-3-mini) and falls
+          back to a deterministic explainer when offline. Nothing leaves the machine. There is no
+          build-time dependency on a hosted LLM, and no model weights are bundled in the repo.
+        </p>
+        <p style="margin-top:10px">
+          The calibration, the verification and the treasury ledger are all plain files on disk.
+          You can read them with a text editor and check them by hand.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="plots">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">06 / Plots</div>
+      <h2>What you can actually fund today</h2>
+      <p>
+        Three Treegens-style plots are open for funding. Each carries a verification method, because a
+        tree that nobody checks is a claim, not a tree.
+      </p>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Plot</th><th>Ecosystem</th><th>Area</th><th>Stems</th><th>Price per stem</th><th>Verification</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="mono">TG-MANGROVE-001</td><td>Mangrove restoration</td><td class="mono">1.0 ha</td>
+            <td class="mono">1,200</td><td class="mono">$2.40</td>
+            <td>Proof of Tree: before/after video, GPS, community check</td>
+          </tr>
+          <tr>
+            <td class="mono">TG-MANGROVE-002</td><td>Mangrove restoration</td><td class="mono">2.5 ha</td>
+            <td class="mono">3,000</td><td class="mono">$2.40</td>
+            <td>Proof of Tree: before/after video, GPS, community check</td>
+          </tr>
+          <tr>
+            <td class="mono">TG-URBAN-001</td><td>Urban street canopy pilot</td><td class="mono">0.5 ha</td>
+            <td class="mono">25</td><td class="mono">$145.00</td>
+            <td>Proof of Tree: before/after photo set, GPS, community check</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="caveat">
+      <h4>Why the urban price is 60x the mangrove price</h4>
+      <p>
+        A 0.5 hectare urban street programme is <b>25</b> mature street trees with irrigation, pit
+        preparation and maintenance, against 1,200 mangrove stems on one hectare. The per-stem price
+        reflects the work, not a margin. Both curves still apply: urban street canopy is modelled
+        separately and reaches 45.5% cover and 126 tCO2e/ha at year 15.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section id="venues">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">07 / Venues</div>
+      <h2>Two chains, two jobs, no hand-waving</h2>
+      <p>
+        The liquidity leg and the treasury rail are deliberately separated. Pretending one chain does
+        both is how projects end up with a token nobody can actually trade.
+      </p>
+    </div>
+    <div class="grid2">
+      <div class="card gold">
+        <span class="tag gold">Solana - the coin</span>
+        <h3>$ASIMOV already exists and is already liquid</h3>
+        <p>
+          $ASIMOV is a Token-2022 mint on Solana: mint authority revoked, 6 decimals, supply
+          999,798,654.675747, 44 holders, first pool opened 2026-10-27. Roughly <b>$1,611</b> of
+          liquidity against roughly <b>$6,532</b> market cap.
+        </p>
+        <p style="margin-top:10px">
+          That is the venue the 40% liquidity bucket belongs to. The liquidity leg deepens the pool
+          that already exists - it does not invent a new one and it does not imply a launch.
+        </p>
+      </div>
+      <div class="card data">
+        <span class="tag data">Hyperliquid - the rail and the future venue</span>
+        <h3>USDC treasury rail, plus HIP-1 and HIP-2</h3>
+        <p>
+          Hyperliquid is the USDC settlement rail and the intended future listing venue. The live API
+          is verified keyless: 235 perps, 511 spot tokens, 349 spot pairs, and a published user fee
+          schedule. Spot fee share on deployer tokens defaults to <b>100%</b> with the remainder burned.
+        </p>
+        <p style="margin-top:10px">
+          <b>HIP-1</b> registers a token for spot trading. <b>HIP-2</b> (Hyperliquidity) is the
+          protocol-recognised LP with a real ladder: each level is the previous price rounded up by
+          0.3%, updated no more often than every 3 seconds, funded with USDC bid levels.
+          <b>No bespoke AMM</b> - which is exactly why this does not look like wash trading.
+        </p>
+      </div>
+    </div>
+    <div class="grid3" style="margin-top:20px">
+      <div class="card">
+        <span class="tag">Cost of the next step</span>
+        <p>
+          A mainnet HIP-1 deployment runs a <b>31-hour Dutch auction with a 500 HYPE floor</b>
+          (roughly $40,000). Testnet first is the correct order, but the testnet faucet needs a prior
+          mainnet deposit from the same address, and the email-login address differs between the two -
+          so use a wallet address on both.
+        </p>
+      </div>
+      <div class="card">
+        <span class="tag">The gate</span>
+        <p>
+          Trading is behind a <b>four-key gate</b>: a trading-enabled flag, a private key, an account
+          address, and the SDK. All four must be present or every order path refuses.
+          There is <b>no hand-rolled EIP-712 signing</b> - if the SDK is absent, nothing trades.
+        </p>
+      </div>
+      <div class="card">
+        <span class="tag">Builder codes</span>
+        <p>
+          Builder codes and HIP-1 are <b>complementary, not alternatives</b>. HIP-1 captures the base
+          side (your token). Builder codes capture the quote side (USDC), capped at 1% spot and 0.1%
+          perps, and they need an <code>ApproveBuilderFee</code> from the user's main wallet.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="stack">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">08 / Toolchain</div>
+      <h2>The NVIDIA skills we installed, and what they actually do here</h2>
+      <p>
+        NVIDIA/skills is 437 skills upstream. We curated <b>48</b> that match this project and
+        installed them into the canonical skill store, OpenCode, all seven council agents, Claude Code,
+        and the MCP layer.
+      </p>
+    </div>
+    <div class="nv-counts">
+      <div class="nvcount"><b>48</b><span>skills installed</span></div>
+      <div class="nvcount"><b>19</b><span>run as-is, no GPU</span></div>
+      <div class="nvcount"><b>29</b><span>need an NVIDIA GPU to execute</span></div>
+      <div class="nvcount"><b>8</b><span>install locations</span></div>
+    </div>
+    <div class="nv-grid">
+      <div class="nv">
+        <div class="nv-c">climate</div>
+        <div class="nv-t">Earth2Studio, 7 skills</div>
+        <p class="nv-d">Weather and climate AI. Data sources, diagnostics, prognostic forecasts and a deterministic 15-year forecast script - the layer that would make the carbon projection climate-driven instead of generic.</p>
+      </div>
+      <div class="nv">
+        <div class="nv-c">omniverse</div>
+        <div class="nv-t">Omniverse, 4 skills</div>
+        <p class="nv-d">CAD to SimReady conversion, USD content services, the realtime viewer and USD performance tuning - the physical-AI pipeline that turns a real plot into a narrated 3D scene that stays smooth on 8GB.</p>
+      </div>
+      <div class="nv">
+        <div class="nv-c">physical-ai</div>
+        <div class="nv-t">Physical AI, 5 skills</div>
+        <p class="nv-d">Synthetic data generation, neural reconstruction, physics engine selection and video augmentation - the machinery behind the day-0 to year-15 growth storyboard.</p>
+      </div>
+      <div class="nv">
+        <div class="nv-c">cosmos</div>
+        <div class="nv-t">Cosmos Predict</div>
+        <p class="nv-d">Video generation for the narration layer, so the physical-AI story is told in motion rather than only in charts.</p>
+      </div>
+      <div class="nv">
+        <div class="nv-c">rag</div>
+        <div class="nv-t">RAG, 3 skills</div>
+        <p class="nv-d">Blueprint deployment, RAGAS quality evaluation and latency profiling - a direct overlap with the existing SHADDAI RAG brain MCP, which is now benchmarked against it.</p>
+      </div>
+      <div class="nv">
+        <div class="nv-c">vision</div>
+        <div class="nv-t">FoundationPose, 2 skills</div>
+        <p class="nv-d">6D pose and depth perception - the path to measuring a real plot and comparing it against the twin instead of trusting a derivation.</p>
+      </div>
+      <div class="nv">
+        <div class="nv-c">tao</div>
+        <div class="nv-t">TAO, 22 skills</div>
+        <p class="nv-d">Dataset conversion and validation, AutoML, the DEFT improvement loop, KPI and gap analysis, and the token-efficient stage-card pattern - a 67 to 91 percent token reduction, which is the right answer to our low-context budget.</p>
+      </div>
+      <div class="nv">
+        <div class="nv-c">meta</div>
+        <div class="nv-t">Meta, 4 skills</div>
+        <p class="nv-d">The skill finder routes any NVIDIA request to the right skill, the skill-card generator gives each one a reviewable governance card, and data-designer designs the SAP dataset schema.</p>
+      </div>
+    </div>
+    <div class="caveat">
+      <h4>This machine has no NVIDIA GPU</h4>
+      <p>
+        The host is a ThinkPad with an <b>Intel HD Graphics 620</b> and 1 GB of VRAM. There are
+        <b>no NVIDIA devices</b> in the hardware inventory. So the 29 GPU-flagged skills are installed
+        and usable as <b>documentation and workflow design</b> today, but their model steps cannot run
+        locally until a real NVIDIA GPU is attached. The other 19 are pure knowledge and instruction
+        skills and work right now. This is also why TensorRT, the NVIDIA container toolkit and the
+        NVIDIA Docker images were ruled out for this build.
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-grid">
+      <div>
+        <h5>S.A.P. - Shaddai Asimov Project</h5>
+        <p>
+          A local-first forest digital twin and a transparent green-initiative treasury, built so
+          that every number can be traced back to a file on disk and every fee can be traced back to
+          a policy.
+        </p>
+        <p class="fine" style="margin-top:14px">
+          Asimov is positioned as ShaddaiAI's first sub-agent under QUILL: writing, education and
+          regenerative work in the physical world.
+        </p>
+      </div>
+      <div>
+        <h5>Explore</h5>
+        <ul>
+          <li><a href="index.html">The 3D forest twin</a></li>
+          <li><a href="forest_edutwin/static/plot_twin.html">The mini plot twin</a></li>
+          <li><a href="#evidence">Calibration proof charts</a></li>
+          <li><a href="#calibration">Verification tooling</a></li>
+          <li><a href="#plots">Open plots</a></li>
+          <li><a href="#stack">NVIDIA skill stack</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Endpoints</h5>
+        <ul>
+          <li class="mono">/api/sap/health</li>
+          <li class="mono">/api/sap/policy</li>
+          <li class="mono">/api/sap/treasury/report</li>
+          <li class="mono">/api/sap/treasury/pools</li>
+          <li class="mono">/api/sap/treegens/plots</li>
+          <li class="mono">/api/sap/hip1/plan</li>
+        </ul>
+      </div>
+    </div>
+    <div class="caveat" style="margin-top:30px">
+      <h4>Read this before quoting any number on this page</h4>
+      <p>
+        All growth and carbon figures are <b>illustrative averages, not site-specific predictions</b>.
+        The curves were digitised from the published SAP graphs and calibrated year by year; they
+        describe a modelled typical trajectory for a hectare of mangrove or urban street canopy,
+        not a forecast for any particular parcel of ground.
+      </p>
+      <p style="margin-top:11px">
+        No figure here is financial advice. $ASIMOV is an existing Solana Token-2022 mint and is
+        <b>not</b> listed on Hyperliquid; the liquidity leg routes to the Solana pool. Nothing on this
+        page is a promise of price, yield or return.
+      </p>
+    </div>
+    <div class="foot-bot">
+      <span>Built locally. Runs on 8GB. Open source.</span>
+      <span>Treegens Proof of Tree &nbsp;+&nbsp; NVIDIA Omniverse / Cosmos &nbsp;|&nbsp; IzzoSol/shaddai-asimov-project</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+  var API = (location.protocol === 'file:') ? 'http://localhost:3000' : '';
+  var dot = document.getElementById('ldot');
+  var state = document.getElementById('lstate');
+  var note = document.getElementById('lnote');
+
+  function set(id, val, sub) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val;
+    if (sub) {
+      var s = el && el.parentNode.querySelector('.lc-sub');
+      if (s) s.textContent = sub;
+    }
+  }
+  function cents(v) {
+    if (v === null || v === undefined) return '-';
+    var n = Number(v);
+    if (!isFinite(n)) return '-';
+    return '$' + (n / 100).toFixed(2);
+  }
+  function num(v) {
+    if (v === null || v === undefined) return '-';
+    var n = Number(v);
+    return isFinite(n) ? n.toLocaleString('en-US') : '-';
+  }
+  function fallback(msg) {
+    dot.className = 'live-dot off';
+    state.textContent = 'backend offline - showing shipped defaults';
+    set('lc-tree', '$0.00');
+    set('lc-liq', '$0.00');
+    set('lc-plat', '$0.00');
+    set('lc-pays', '0');
+    note.innerHTML = 'The live API was not reachable at <span class="mono">' + API + '/api/sap/treasury/report</span>. ' + msg +
+      ' The page is fully readable offline - this panel is the only part that needs the backend.';
+  }
+
+  function render(payload) {
+    var pools = (payload && (payload.pools || (payload.report && payload.report.pools))) || {};
+    var tree = pools.eco !== undefined ? pools.eco : pools.treeFund;
+    var liq = pools.asimovLiquidity;
+    var plat = pools.treasury;
+    var pays = (payload && payload.treePayments && payload.treePayments.length) ||
+               (payload && payload.report && payload.report.treePayments && payload.report.treePayments.length) || 0;
+
+    dot.className = 'live-dot on';
+    state.textContent = 'live - backend reachable';
+    set('lc-tree', cents(tree), 'pool: eco');
+    set('lc-liq', cents(liq), 'pool: asimovLiquidity');
+    set('lc-plat', cents(plat), 'pool: treasury');
+    set('lc-pays', num(pays), 'on-chain intents queued');
+
+    var lines = [];
+    lines.push('Ledger read at ' + new Date().toLocaleString());
+    if (payload && payload.caveat) lines.push(payload.caveat);
+    if (payload && payload.report && payload.report.generatedAt) lines.push('generated ' + payload.report.generatedAt);
+    note.textContent = lines.join(' | ');
+  }
+
+  function tryFetch(url, ms) {
+    return new Promise(function (resolve, reject) {
+      var ctrl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timer = setTimeout(function () { if (ctrl) ctrl.abort(); reject(new Error('timeout')); }, ms || 4000);
+      fetch(url, ctrl ? { signal: ctrl.signal } : undefined)
+        .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then(function (j) { clearTimeout(timer); resolve(j); })
+        .catch(function (e) { clearTimeout(timer); reject(e); });
+    });
+  }
+
+  if (typeof fetch !== 'function') { fallback('This browser has no fetch API.'); return; }
+
+  tryFetch(API + '/api/sap/treasury/report', 4500)
+    .then(render)
+    .catch(function () {
+      return tryFetch(API + '/api/sap/treasury/pools', 4500)
+        .then(function (j) { render({ pools: j.pools, caveat: j.caveat }); })
+        .catch(function () { fallback('Start the SHADDAI backend to see live accrued balances.'); });
+    });
+})();
+</script>
+</body>
+</html>
+
