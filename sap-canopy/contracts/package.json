@@ -1,0 +1,38 @@
+{
+  "name": "sap-canopy-contracts",
+  "version": "1.0.0",
+  "description": "S.A.P. AgentPay + TreeNFT -- on-chain escrow where 1% of every agent job funds a real tree. Verified against the five flaws in AGENTPAY_MULTICHAIN_SPEC.md plus a sixth found during implementation.",
+  "main": "scripts/compile.js",
+  "scripts": {
+    "build": "node scripts/compile.js",
+    "test": "node scripts/test.js",
+    "check:foundry": "node scripts/check-foundry.js",
+    "test:foundry": "forge test -vvv",
+    "test:all": "npm run build && npm run check:foundry && npm test",
+    "clean": "node -e \"require('fs').rmSync('build',{recursive:true,force:true})\""
+  },
+  "keywords": [
+    "sap",
+    "shaddai",
+    "asimov",
+    "treegens",
+    "agentpay",
+    "treenft",
+    "solidity",
+    "escrow"
+  ],
+  "author": "IzzoSol",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.1.0"
+  },
+  "devDependencies": {
+    "ethers": "^6.17.0",
+    "ganache": "^7.9.2",
+    "solc": "^0.8.24"
+  }
+}

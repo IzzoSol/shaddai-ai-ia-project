@@ -1,0 +1,14 @@
+# Build output -- regenerate with `npm run build`
+build/
+
+# Foundry (not installed on this machine; these paths exist so a vendored
+# forge-std and a local build never land in the repository)
+out/
+cache/
+lib/
+
+# Local scratch probes
+.probe*.js
+
+# node_modules is ignored by the repository root .gitignore
+node_modules/

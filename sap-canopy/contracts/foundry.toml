@@ -1,0 +1,49 @@
+# Foundry configuration for the S.A.P. AgentPay + TreeNFT contracts.
+#
+# NOTE: Foundry is NOT installed on this machine (`forge` / `anvil` are absent),
+# so the suite that actually runs today is the ganache + ethers harness:
+#     npm run build   ->  node scripts/compile.js   (solc 0.8.24, 28 checks)
+#     npm test        ->  node scripts/test.js      (ganache + ethers 6)
+#
+# These Foundry files are the equivalent suite written to the SAME assertions.
+# They will execute wherever Foundry is available. To run them you must:
+#   1. install Foundry        (https://book.getfoundry.sh/getting-started/installation)
+#   2. vendor forge-std       (forge install foundry-rs/forge-std --no-commit)
+#   3. forge test -vvv
+#
+# `lib/` and `out/` are git-ignored so a vendored forge-std never lands in the
+# repository.
+
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+test = "test"
+
+solc_version = "0.8.24"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+
+# Base is the primary deployment target. The contracts read chainId from the
+# chain itself, so the same bytecode is correct on Polygon too.
+chain_id = 8453
+
+remappings = [
+    "@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/",
+    "forge-std/=lib/forge-std/src/",
+]
+
+# The behavioural mocks live under test/mocks so they are compiled as test
+# sources rather than shipped as production contracts.
+[profile.default.fuzz]
+runs = 256
+
+[fmt]
+line_length = 120
+tab_width = 4
+bracket_spacing = false
+int_types = "long"
+multiline_func_header = "attributes_first"
+quote_style = "double"
+number_underscore = "preserve"
