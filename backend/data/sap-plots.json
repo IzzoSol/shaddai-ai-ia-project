@@ -1,0 +1,40 @@
+{
+  "plots": [
+    {
+      "plotId": "TG-MANGROVE-001",
+      "name": "Mangrove Restoration Plot 001",
+      "region": "Coastal mangrove belt",
+      "ecosystem": "mangrove",
+      "areaHa": 1.0,
+      "stemsAvailable": 1200,
+      "priceCentsPerStem": 240,
+      "status": "open",
+      "source": "treegens-adapter",
+      "verification": "Treegens Proof of Tree (before/after video, GPS, community check)"
+    },
+    {
+      "plotId": "TG-MANGROVE-002",
+      "name": "Mangrove Restoration Plot 002",
+      "region": "Coastal mangrove belt",
+      "ecosystem": "mangrove",
+      "areaHa": 2.5,
+      "stemsAvailable": 3000,
+      "priceCentsPerStem": 240,
+      "status": "open",
+      "source": "treegens-adapter",
+      "verification": "Treegens Proof of Tree (before/after video, GPS, community check)"
+    },
+    {
+      "plotId": "TG-URBAN-001",
+      "name": "Urban Street Canopy Pilot",
+      "region": "Municipal street tree programme",
+      "ecosystem": "urban",
+      "areaHa": 0.5,
+      "stemsAvailable": 25,
+      "priceCentsPerStem": 14500,
+      "status": "open",
+      "source": "treegens-adapter",
+      "verification": "Treegens Proof of Tree (before/after photo set, GPS, community check)"
+    }
+  ]
+}

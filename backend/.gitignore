@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Secrets — never commit. Copy .env.example to .env and fill it in.
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+secrets.json
+
+# Runtime ledgers — these MUTATE as the service runs. The committed files
+# under data/ are SEEDS (empty ledgers + the static plot catalogue); the
+# live state is written back over them at runtime.
+data/economy.json
+data/treasury.json.bak
+*.runtime.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-error.log*

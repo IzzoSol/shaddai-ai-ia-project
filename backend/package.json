@@ -1,0 +1,36 @@
+{
+  "name": "shaddai-sap-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "S.A.P. green-initiative backend: fee-routing policy, treasury transparency, Treegens tree payments, Hyperliquid reads and the HIP-1/2 deployment planner.",
+  "license": "MIT",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "jest tests/",
+    "test:sap": "jest tests/sap-treasury.test.js tests/x402-fee-routing.test.js",
+    "test:watch": "jest --watch"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "firebase-admin": "^14.3.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000
+  }
+}
