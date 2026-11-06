@@ -29,6 +29,9 @@
     "jest": "^29.7.0",
     "supertest": "^6.3.3"
   },
+  "optionalDependencies": {
+    "node-fetch": "^2.7.0"
+  },
   "jest": {
     "testEnvironment": "node",
     "testTimeout": 30000
