@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asimov Center — S.A.P. Canopy Twin</title>
+<meta name="description" content="Shaddai Asimov Project: immersive canopy digital twin, 15-year restoration simulation, mission control and system diagrams. Illustrative averages, not site-specific predictions.">
+<!--
+  ASIMOV CENTER — single-file, zero-build.
+  Views: Immersive (Three.js) · Simulation (vanilla canvas) · Mission Control · Diagrams (SVG).
+  Only the Immersive view needs the network (three.js from unpkg); everything else works offline.
+  Growth model = the same formulas as sap-canopy/urban_forest_explainer.py, so numbers match EduTwin.
+  Budget: ThinkPad, ~8 GB RAM, Intel HD 620 — instanced meshes, capped pixel ratio, bloom auto-drops on low FPS,
+  3D render loop pauses when its view is hidden.
+-->
+<style>
+:root{
+  --bg:#03090a; --bg2:#06120f; --panel:rgba(6,20,17,.80); --panel2:rgba(9,28,23,.86);
+  --line:rgba(94,255,170,.15); --line2:rgba(94,255,170,.34);
+  --g:#4dff9a; --g2:#22c55e; --g3:#14532d; --cy:#3ef0e0; --amber:#ffc24d; --red:#ff6b7a; --violet:#a78bfa;
+  --tx:#dcf8ea; --mut:#82a898; --dim:#557567;
+  --mono:"Cascadia Code","JetBrains Mono",Consolas,ui-monospace,monospace;
+  --sans:"Segoe UI Variable","Segoe UI",Inter,system-ui,sans-serif;
+  --r:14px; --dock:64px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:14px/1.45 var(--sans);overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--cy)}
+::selection{background:#1f6f4a}
+::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-thumb{background:#1c3b31;border-radius:8px}
+
+/* ── header ─────────────────────────────────────────── */
+header{position:fixed;inset:0 0 auto 0;height:58px;z-index:40;display:flex;align-items:center;gap:18px;padding:0 18px;
+  background:linear-gradient(180deg,rgba(3,10,9,.94),rgba(3,10,9,.72));border-bottom:1px solid var(--line);backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:10px;min-width:230px}
+.brand svg{width:30px;height:30px}
+.brand b{display:block;letter-spacing:.22em;font-size:13px}
+.brand small{display:block;color:var(--mut);letter-spacing:.14em;font-size:10px}
+nav{display:flex;gap:4px;margin:0 auto;background:rgba(10,30,24,.6);border:1px solid var(--line);border-radius:12px;padding:4px}
+nav button i{font-style:normal}
+nav button .sh{display:none}
+.hstat .back{color:var(--mut);text-decoration:none;border:1px solid var(--line);padding:5px 9px;border-radius:8px;font-size:11px;white-space:nowrap}
+.hstat .back:hover{color:var(--g);border-color:var(--g)}
+nav button{border:0;background:none;padding:7px 14px;border-radius:9px;cursor:pointer;color:var(--mut);letter-spacing:.08em;font-size:12px;text-transform:uppercase;white-space:nowrap}
+nav button:hover{color:var(--tx)}
+nav button[aria-selected=true]{background:linear-gradient(180deg,#123d2c,#0b2a1f);color:var(--g);box-shadow:inset 0 0 0 1px var(--line2)}
+.hstat{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:12px;color:var(--mut);min-width:230px;justify-content:flex-end}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--g);box-shadow:0 0 10px var(--g);display:inline-block}
+.dot.off{background:#557567;box-shadow:none}
+.dot.amber{background:var(--amber);box-shadow:0 0 10px var(--amber)}
+.dot.red{background:var(--red);box-shadow:0 0 10px var(--red)}
+
+/* ── views ──────────────────────────────────────────── */
+main{position:fixed;inset:58px 0 0 0}
+.view{position:absolute;inset:0;display:none;overflow:auto}
+.view.active{display:block}
+body[data-dock="1"] .view.scroll{bottom:var(--dock)}
+.glass{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);backdrop-filter:blur(12px);box-shadow:0 10px 40px rgba(0,0,0,.35),inset 0 1px 0 rgba(160,255,210,.05)}
+.cap{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--mut)}
+.big{font-size:28px;font-weight:600;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.g{color:var(--g)}.cy{color:var(--cy)}.am{color:var(--amber)}.rd{color:var(--red)}.mut{color:var(--mut)}
+.mono{font-family:var(--mono)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line2);font-size:11px;letter-spacing:.06em;cursor:pointer;background:rgba(10,40,30,.4);user-select:none}
+.chip[aria-pressed=false]{opacity:.45}
+.chip:hover{border-color:var(--g)}
+.caveat{font-size:11px;color:var(--amber);opacity:.9}
+.caveat::before{content:"⚠ ";}
+
+/* ── immersive ──────────────────────────────────────── */
+#v-immersive{overflow:hidden}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;background:radial-gradient(ellipse at 50% 30%,#bfe6ff,#7fb6c9 60%,#2d4b44)}
+.hud{position:absolute;pointer-events:none;z-index:3}
+#story{position:absolute;inset:0;overflow-y:auto;display:none;z-index:2;scroll-snap-type:y proximity;scrollbar-width:none}
+#story::-webkit-scrollbar{display:none}
+body.storymode #story{display:block}
+body.storymode #hudR,body.storymode #hudLegend{display:none}
+#story .ch{height:100vh;display:flex;align-items:flex-end;justify-content:flex-end;padding:0 40px calc(var(--dock) + 110px) 300px;scroll-snap-align:start}
+#story .ch.end{height:40vh}
+#story .chcard{max-width:460px;padding:18px 20px;opacity:0;transform:translateY(26px) scale(.98);transition:opacity .7s,transform .7s cubic-bezier(.2,.8,.2,1);border-left:3px solid var(--g)}
+#story .ch.on .chcard{opacity:1;transform:none}
+#story h2{margin:6px 0;font-size:26px;letter-spacing:.02em}
+#story p{margin:0;color:#cfeee0;font-size:14.5px}
+body.storymode #gl{cursor:ns-resize}
+@media (max-width:760px){#story .ch{padding-left:16px;padding-right:16px}}
+.hud>*{pointer-events:auto}
+#hudL{left:16px;top:16px;width:250px;padding:14px}
+#hudL .row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px dashed var(--line)}
+#hudL .row:last-of-type{border:0}
+#hudL .v{font:600 18px var(--mono)}
+#hudR{right:16px;top:16px;width:340px;padding:14px}
+#hudR .who{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#e9fff6,#76d9b4 45%,#0f5a40);box-shadow:0 0 18px rgba(77,255,154,.35);flex:none}
+.av svg{width:20px;height:20px}
+#narr{min-height:92px;color:#cdeedd;font-size:13.5px}
+#hudLayers{left:16px;bottom:calc(var(--dock) + 14px);display:flex;flex-wrap:wrap;gap:6px;max-width:520px}
+#hudLegend{right:16px;bottom:calc(var(--dock) + 14px);padding:10px 12px;font-size:11.5px;max-width:340px}
+#glFail{position:absolute;inset:0;display:none;place-items:center;text-align:center;padding:30px}
+#glFail .glass{padding:24px;max-width:520px}
+#loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:12px var(--mono);letter-spacing:.2em;color:#0d3b2c}
+
+/* ── dock (shared timeline) ─────────────────────────── */
+#dock{position:fixed;left:0;right:0;bottom:0;height:var(--dock);z-index:30;display:none;align-items:center;gap:12px;padding:0 18px;
+  background:linear-gradient(0deg,rgba(3,10,9,.96),rgba(3,10,9,.80));border-top:1px solid var(--line);backdrop-filter:blur(10px)}
+body[data-dock="1"] #dock{display:flex}
+.btn{border:1px solid var(--line2);background:linear-gradient(180deg,#0f3326,#0a2219);color:var(--tx);padding:8px 14px;border-radius:10px;cursor:pointer;letter-spacing:.06em;font-size:12px;display:inline-flex;align-items:center;gap:7px}
+.btn:hover{border-color:var(--g);color:var(--g)}
+.btn.play{width:46px;height:42px;justify-content:center;padding:0;border-radius:12px;background:linear-gradient(180deg,#1f8f55,#11603a);border-color:#4dff9a88}
+.btn.play svg{width:18px;height:18px}
+.btn.sm{padding:5px 10px;font-size:11px}
+#yLabel{font:600 15px var(--mono);min-width:150px}
+#yLabel small{color:var(--mut);font-weight:400}
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;background:linear-gradient(90deg,var(--g2) var(--p,0%),#173329 var(--p,0%));outline:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#e9fff4;border:3px solid var(--g2);box-shadow:0 0 12px var(--g)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#e9fff4;border:3px solid var(--g2)}
+#yr{flex:1}
+.ticks{display:flex;gap:4px}
+.ticks button{border:1px solid var(--line);background:rgba(8,26,20,.6);border-radius:8px;padding:4px 8px;font:11px var(--mono);cursor:pointer;color:var(--mut)}
+.ticks button.on{color:var(--g);border-color:var(--g)}
+
+/* ── simulation dashboard ───────────────────────────── */
+.sim{display:grid;grid-template-columns:270px minmax(0,1fr) 350px;gap:14px;padding:14px;min-height:100%}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.card{padding:14px 16px}
+.card h3{margin:0 0 10px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--mut);font-weight:600;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.metric{display:grid;grid-template-columns:1fr 92px;align-items:center;gap:6px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.metric:last-child{border:0}
+.metric .lab{font-size:11px;color:var(--mut);letter-spacing:.08em;text-transform:uppercase}
+.metric .val{font:600 19px var(--mono)}
+.metric .d{font-size:11px;color:var(--g)}
+.metric canvas{width:92px;height:34px}
+.field{display:grid;gap:4px;margin-bottom:10px}
+.field label{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mut)}
+.field label b{color:var(--tx);font:600 12px var(--mono)}
+select{background:#0a221a;border:1px solid var(--line2);border-radius:9px;padding:7px 9px;width:100%}
+.nominal{font:700 26px var(--mono);color:var(--g);letter-spacing:.06em;text-shadow:0 0 18px rgba(77,255,154,.45)}
+.title-bar{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.title-bar h1{margin:0;font-size:20px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.title-bar p{margin:2px 0 0;color:var(--mut);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.twin{position:relative;height:clamp(300px,44vh,520px);border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#041410}
+#twin{width:100%;height:100%;display:block}
+.twin .layers{position:absolute;left:10px;top:10px;display:flex;gap:6px;flex-wrap:wrap}
+.twin .tag{position:absolute;padding:6px 10px;border-radius:9px;background:rgba(4,20,15,.82);border:1px solid var(--line2);font-size:11px;pointer-events:none}
+.miles{display:flex;justify-content:space-between;align-items:center;position:relative;margin:14px 6px 2px}
+.miles::before{content:"";position:absolute;left:20px;right:20px;top:50%;height:2px;background:linear-gradient(90deg,var(--g2) var(--p,0%),#173329 var(--p,0%))}
+.miles button{position:relative;width:52px;height:52px;border-radius:50%;border:1px solid var(--line2);background:#071a14;cursor:pointer;font:10px var(--mono);color:var(--mut);line-height:1.1}
+.miles button b{display:block;font-size:15px;color:var(--tx)}
+.miles button.on{border-color:var(--g);box-shadow:0 0 16px rgba(77,255,154,.4);color:var(--g)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.chartbox{height:180px;position:relative}
+.chartbox canvas{width:100%;height:100%;display:block}
+.split{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.split div{border-left:2px solid var(--line2);padding-left:8px}
+.split .cap{font-size:9.5px}
+.split b{font:600 15px var(--mono);display:block}
+.pill{font-size:10.5px;padding:3px 8px;border-radius:999px;border:1px solid;letter-spacing:.06em}
+.pill.am{border-color:#ffc24d77;color:var(--amber);background:#2a200833}
+.pill.g{border-color:#4dff9a77;color:var(--g)}
+.pill.rd{border-color:#ff6b7a77;color:var(--red)}
+.pill.cy{border-color:#3ef0e077;color:var(--cy)}
+.eq li{margin:3px 0}
+/* chat */
+.chat{display:flex;flex-direction:column;min-height:0;height:100%}
+.msgs{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-right:4px;min-height:260px}
+.msg{padding:10px 12px;border-radius:12px;background:rgba(14,40,32,.7);border:1px solid var(--line);font-size:13px}
+.msg.me{align-self:flex-end;background:rgba(24,70,52,.6);max-width:85%}
+.msg time{display:block;color:var(--dim);font:10px var(--mono);margin-top:4px}
+.msg.impact{border-color:#4dff9a55}
+.chatin{display:flex;gap:6px;margin-top:10px}
+.chatin input{flex:1;background:#08201a;border:1px solid var(--line2);border-radius:10px;padding:9px 11px;outline:none}
+.chatin input:focus{border-color:var(--g)}
+.sugg{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.sugg button{font-size:11px;padding:4px 8px;border-radius:8px;border:1px solid var(--line);background:#0a1f19;cursor:pointer;color:var(--mut)}
+.sugg button:hover{color:var(--g);border-color:var(--g)}
+.olla{display:flex;gap:6px;align-items:center;font-size:11px;color:var(--mut);margin-top:8px;flex-wrap:wrap}
+.olla input[type=text]{width:120px;background:#08201a;border:1px solid var(--line);border-radius:7px;padding:3px 6px;font:11px var(--mono)}
+
+/* ── mission control ────────────────────────────────── */
+.mc{padding:18px;display:grid;gap:14px;grid-template-columns:repeat(12,1fr);max-width:1500px;margin:0 auto}
+.mc .span3{grid-column:span 3}.mc .span4{grid-column:span 4}.mc .span5{grid-column:span 5}.mc .span6{grid-column:span 6}.mc .span7{grid-column:span 7}.mc .span8{grid-column:span 8}.mc .span12{grid-column:span 12}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;font-size:12.5px}
+.kv dt{color:var(--mut)}.kv dd{margin:0;font-family:var(--mono);word-break:break-all}
+.gate{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.gate:last-child{border:0}
+.gate .n{margin-left:auto;font:600 13px var(--mono)}
+.hero-mc{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;padding:20px 22px;
+  background:radial-gradient(ellipse at 10% 0%,rgba(77,255,154,.12),transparent 60%),var(--panel)}
+.hero-mc h1{margin:0;font-size:24px;letter-spacing:.08em}
+.hero-mc p{margin:4px 0 0;color:var(--mut)}
+.stats{display:flex;gap:26px;flex-wrap:wrap}
+.stats div b{display:block;font:600 24px var(--mono);color:var(--g)}
+.stats div span{font-size:11px;color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
+table.vt{width:100%;border-collapse:collapse;font-size:12.5px}
+table.vt td,table.vt th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+table.vt th{font-size:10.5px;letter-spacing:.14em;color:var(--mut);text-transform:uppercase;font-weight:600}
+.rules{counter-reset:r;display:grid;gap:8px}
+.rules div{display:grid;grid-template-columns:40px 1fr;gap:8px;align-items:start;font-size:12.5px}
+.rules div b{font:700 12px var(--mono);color:var(--g);border:1px solid var(--line2);border-radius:7px;text-align:center;padding:3px 0}
+#probeOut{font:11.5px var(--mono);white-space:pre-wrap;max-height:220px;overflow:auto;background:#020806;border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:10px;color:#9fd8bd}
+
+/* ── diagrams ───────────────────────────────────────── */
+.dg{max-width:1240px;margin:0 auto;padding:18px 18px 60px}
+.dg-nav{display:flex;gap:6px;flex-wrap:wrap;position:sticky;top:0;z-index:5;padding:10px 0;background:linear-gradient(180deg,var(--bg) 70%,transparent)}
+.dg section{margin:18px 0 28px;scroll-margin-top:60px}
+.dg h2{margin:0;font-size:16px;letter-spacing:.14em;text-transform:uppercase}
+.dg .lede{color:var(--mut);margin:4px 0 12px;max-width:900px}
+.dg .frame{padding:12px;overflow:auto}
+.dg svg{width:100%;height:auto;display:block;min-width:820px}
+svg .nd rect{fill:#0a2119;stroke:rgba(94,255,170,.38);stroke-width:1.2}
+svg .nd.core rect{fill:#0f3a2a;stroke:#4dff9a;stroke-width:1.6}
+svg .nd.gate rect{fill:#2a2108;stroke:#ffc24d;stroke-dasharray:5 4}
+svg .nd.block rect{fill:#2a0e13;stroke:#ff6b7a;stroke-dasharray:5 4}
+svg .nd.ext rect{fill:#0a1d26;stroke:#3ef0e0}
+svg .nd.ok rect{fill:#0c2e1d;stroke:#22c55e}
+svg .nd.ai rect{fill:#1a1533;stroke:#a78bfa}
+svg .nd text.t{fill:#e3fbef;font:600 13px var(--sans)}
+svg .nd text.s{fill:#8fb8a6;font:10px var(--mono)}
+svg .grp rect{fill:rgba(77,255,154,.025);stroke:rgba(94,255,170,.22);stroke-dasharray:3 5}
+svg .grp text{fill:#6f9a88;font:600 10.5px var(--sans);letter-spacing:.16em}
+svg .ed path{fill:none;stroke:#3e8f6a;stroke-width:1.6}
+svg .ed.flow path{stroke:#4dff9a;stroke-dasharray:7 6;animation:dash 1.1s linear infinite}
+svg .ed.read path{stroke:#3ef0e0;stroke-dasharray:2 5}
+svg .ed.gate path{stroke:#ffc24d;stroke-dasharray:6 5}
+svg .ed.block path{stroke:#ff6b7a;stroke-dasharray:4 5}
+svg .ed text{fill:#a9cfbf;font:10.5px var(--mono)}
+svg .ed rect{fill:#04100c}
+@keyframes dash{to{stroke-dashoffset:-13}}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--mut);margin-top:8px}
+.legend i{display:inline-block;width:22px;height:0;border-top:2px dashed;vertical-align:middle;margin-right:6px}
+
+.atlas{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(220px,1fr);gap:14px}
+.atlasmap{position:relative;height:300px;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#03100d}
+#atlas{width:100%;height:100%;display:block;cursor:crosshair}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+#siteCard .nm{font-size:16px;font-weight:600}
+#siteCard .fact{font-size:12.5px;margin:8px 0;color:#cfeee0}
+#siteCard .list{max-height:150px;overflow:auto;margin-top:10px;border-top:1px dashed var(--line);padding-top:6px}
+#siteCard .list button{display:flex;width:100%;justify-content:space-between;gap:8px;background:none;border:0;padding:4px 2px;cursor:pointer;color:var(--mut);font-size:12px;text-align:left}
+#siteCard .list button:hover,#siteCard .list button.on{color:var(--g)}
+.eco{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.eco div{display:flex;gap:10px;align-items:flex-start;padding:10px;border-radius:11px;border:1px solid var(--line);background:rgba(6,20,16,.6);opacity:.42;transition:opacity .5s,border-color .5s,box-shadow .5s}
+.eco div.on{opacity:1;border-color:#4dff9a66;box-shadow:inset 0 0 22px rgba(77,255,154,.07)}
+.eco i{font-style:normal;font-size:20px;line-height:1}
+.eco b{display:block;font-size:12.5px}
+.eco span{font-size:11.5px;color:var(--mut)}
+.eco em{font-style:normal;font:10px var(--mono);color:var(--dim)}
+body.clean .hud,body.clean header,body.clean #dock,body.clean footer{display:none !important}
+body.clean main{inset:0}
+@media (max-width:900px){.atlas{grid-template-columns:1fr}}
+footer{position:fixed;right:12px;bottom:calc(var(--dock) + 6px);z-index:20;font-size:10.5px;color:var(--amber);opacity:.75;pointer-events:none}
+body:not([data-dock="1"]) footer{bottom:8px}
+
+@media (max-width:1200px){
+  .sim{grid-template-columns:minmax(0,1fr)}
+  .mc>*{grid-column:span 12 !important}
+  #hudR{width:280px}
+  .grid3{grid-template-columns:1fr}
+}
+@media (max-width:1100px){.hstat>span:first-of-type{display:none}.brand{min-width:0}.hstat{min-width:0}}
+@media (max-width:760px){
+  header{gap:8px;padding:0 10px}
+  .brand div{display:none}
+  nav{margin:0;flex:1;justify-content:space-between;overflow-x:auto;scrollbar-width:none}
+  nav button{padding:8px 6px;font-size:11px;flex:1;min-height:38px}
+  nav button span:not(.sh){display:none}
+  nav button .sh{display:inline}
+  .brand small,.hstat{display:none}
+  .sim .chat{position:static !important;height:560px !important}
+  #dock{gap:8px;padding:0 10px}
+  #yLabel{min-width:0;font-size:13px}
+  #bSpeed{display:none}
+  #story .ch{justify-content:center;padding:0 12px calc(var(--dock) + 90px)}
+  #hudLayers{max-width:calc(100% - 32px)}
+  #hudL,#hudR{display:none}
+  .grid2{grid-template-columns:1fr}
+  .ticks{display:none}
+}
+</style>
+<script type="importmap">
+{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+</script>
+</head>
+<body data-dock="1">
+
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 32 32" fill="none" stroke="#4dff9a" stroke-width="1.6"><path d="M16 3c6 5 8 10 0 26C8 13 10 8 16 3z"/><path d="M16 9v20M16 15l-4-3M16 19l4-3M16 23l-3-2"/></svg>
+    <div><b>ASIMOV CENTER</b><small>S.A.P. · CANOPY TWIN</small></div>
+  </div>
+  <nav role="tablist" aria-label="Views">
+    <button role="tab" data-v="immersive" aria-selected="true"><i>◈</i> <span>Immersive</span><span class="sh">3D</span></button>
+    <button role="tab" data-v="sim" aria-selected="false"><i>▤</i> <span>Simulation</span><span class="sh">Sim</span></button>
+    <button role="tab" data-v="status" aria-selected="false"><i>◉</i> <span>Mission Control</span><span class="sh">Status</span></button>
+    <button role="tab" data-v="diagrams" aria-selected="false"><i>⌗</i> <span>Diagrams</span><span class="sh">Maps</span></button>
+  </nav>
+  <div class="hstat"><a class="back" href="https://asimovrobocat.onrender.com/" title="Back to the $ASIMOV site">← $ASIMOV site</a><span>SIM <b id="hYear" class="g">YEAR 0.0</b></span><span><span class="dot off" id="hDot"></span> <span id="hRun">PAUSED</span></span></div>
+</header>
+
+<main>
+<!-- ═════════════ IMMERSIVE ═════════════ -->
+<section class="view active" id="v-immersive" aria-label="Immersive canopy twin">
+  <canvas id="gl"></canvas>
+  <div id="loading">LOADING CANOPY TWIN…</div>
+  <div id="glFail"><div class="glass"><h3 style="margin-top:0">3D view needs three.js</h3>
+    <p class="mut">The immersive scene loads three.js from unpkg and could not reach it (offline?) or WebGL is unavailable. Simulation, Mission Control and Diagrams all work offline.</p>
+    <button class="btn" onclick="go('sim')">Open Simulation →</button></div></div>
+
+  <div id="story" aria-label="Scroll story"></div>
+  <div class="hud glass" id="hudL">
+    <div class="cap">Restoration plot · live model</div>
+    <div class="row"><span class="mut">Plot</span><span class="mono" id="iPlot" style="font-size:12px">—</span></div>
+    <div class="row"><span class="mut">Site template</span><span id="iSite" style="font-size:12px;text-align:right">—</span></div>
+    <div class="row"><span class="mut">Year</span><span class="v g" id="iYear">0.0</span></div>
+    <div class="row"><span class="mut">Canopy cover</span><span class="v" id="iCover">0%</span></div>
+    <div class="row"><span class="mut">CO₂e stored</span><span class="v" id="iCO2">0 t</span></div>
+    <div class="row"><span class="mut">Trees alive</span><span class="v" id="iAlive">0</span></div>
+    <div class="row"><span class="mut">Habitat proxy</span><span class="v" id="iBio">0.00</span></div>
+    <div class="caveat" style="margin-top:8px">Illustrative averages, not site-specific predictions.</div>
+  </div>
+
+  <div class="hud glass" id="hudR">
+    <div class="who"><div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="#063" stroke-width="2"><circle cx="12" cy="10" r="5"/><path d="M9 10h.01M15 10h.01M6 20c1.5-3 4-4 6-4s4.5 1 6 4"/></svg></div>
+      <div><b>ASIMOV</b> <span class="pill g">QUILL sub-agent</span><div class="cap" style="margin-top:2px">Narrating the twin</div></div></div>
+    <div id="narr"></div>
+    <div id="narrEco" style="margin-top:8px;font-size:12px;color:var(--cy)"></div>
+    <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn sm" onclick="go('sim')">Open dashboard</button>
+      <button class="btn sm" onclick="go('diagrams')">How it works</button>
+    </div>
+  </div>
+
+  <div class="hud" id="hudLayers">
+    <span class="chip" data-l="story" aria-pressed="false" title="Scroll to fly through 15 years">▼ Scroll story</span>
+    <span class="chip" data-l="holo" aria-pressed="true">◇ Holograms</span>
+    <span class="chip" data-l="streams" aria-pressed="true">≋ Data streams</span>
+    <span class="chip" data-l="bots" aria-pressed="true">⚙ Field robots</span>
+    <span class="chip" data-l="markers" aria-pressed="true">⌾ Plot markers</span>
+    <span class="chip" data-l="glow" aria-pressed="true">✦ Glow</span>
+    <span class="chip" data-l="orbit" aria-pressed="true">↻ Auto-orbit</span>
+  </div>
+  <div class="hud glass" id="hudLegend">
+    <b class="g">Drag</b> to orbit · <b class="g">scroll</b> to zoom · <b class="g">space</b> play/pause.<br>
+    <span class="mut">Plot trees grow with the timeline; the outer forest is mature context. Robots and rover are illustrative field agents (physical-AI narrative), not deployed hardware.</span>
+  </div>
+</section>
+
+<!-- ═════════════ SIMULATION ═════════════ -->
+<section class="view scroll" id="v-sim" aria-label="Simulation dashboard">
+ <div class="sim">
+  <!-- left -->
+  <div class="col">
+    <div class="glass card">
+      <div class="cap">Asimov Center · control room</div>
+      <div style="margin:10px 0 2px" class="cap">Simulation status</div>
+      <div class="nominal" id="sNominal">NOMINAL</div>
+      <div class="mut" style="font-size:11.5px">Deterministic model · runs offline on 8 GB · no GPU</div>
+    </div>
+    <div class="glass card">
+      <h3>Live metrics <span class="pill g" id="sLive">YEAR 0</span></h3>
+      <div class="metric"><div><div class="lab">CO₂e stored (t)</div><div class="val" id="mCO2">0</div><div class="d" id="mCO2d"></div></div><canvas id="spCO2"></canvas></div>
+      <div class="metric"><div><div class="lab">Canopy cover</div><div class="val" id="mCov">0%</div><div class="d" id="mCovd"></div></div><canvas id="spCov"></canvas></div>
+      <div class="metric"><div><div class="lab">Habitat proxy</div><div class="val" id="mBio">0.00</div><div class="d" id="mBiod"></div></div><canvas id="spBio"></canvas></div>
+      <div class="metric"><div><div class="lab">Trees alive</div><div class="val" id="mAlive">0</div><div class="d" id="mAlived"></div></div><canvas id="spAlive"></canvas></div>
+    </div>
+    <div class="glass card">
+      <h3>Scenario inputs</h3>
+      <div class="field"><label>Treegens plot <b id="fPlotLab"></b></label><select id="fPlot"></select></div>
+      <div class="mut" id="fPlotInfo" style="font-size:11px;margin:-4px 0 10px"></div>
+      <div class="field"><label>Species <b id="fSpLab"></b></label><select id="fSp"></select></div>
+      <div class="field"><label>Trees planted <b id="fTreesV"></b></label><input type="range" id="fTrees" min="100" max="5000" step="50"></div>
+      <div class="field"><label>Plot area (ha) <b id="fHaV"></b></label><input type="range" id="fHa" min="0.5" max="20" step="0.5"></div>
+      <div class="field"><label>Annual mortality <b id="fMortV"></b></label><input type="range" id="fMort" min="0" max="15" step="0.5"></div>
+      <div class="field"><label>Root : shoot ratio <b id="fRsV"></b></label><input type="range" id="fRs" min="0" max="1" step="0.05"></div>
+      <div class="caveat">Inputs are scenario knobs, not field measurements.</div>
+    </div>
+  </div>
+
+  <!-- center -->
+  <div class="col">
+    <div class="glass card">
+      <div class="title-bar">
+        <div><h1 id="simTitle">Mangrove Growth Simulation</h1><p>15-year restoration projection · EduTwin model</p></div>
+        <div class="mono mut" style="font-size:12px">SIMULATION TIME <b class="g" id="sTime">YEAR 0.0</b> · <span id="sCal">2026</span></div>
+      </div>
+      <div class="twin" style="margin-top:12px">
+        <canvas id="twin"></canvas>
+        <div class="layers">
+          <span class="chip" data-tl="canopy" aria-pressed="true">Canopy</span>
+          <span class="chip" data-tl="heat" aria-pressed="false">Carbon density</span>
+          <span class="chip" data-tl="lidar" aria-pressed="true">LiDAR sweep</span>
+          <span class="chip" data-tl="plots" aria-pressed="true">Proof-of-Tree plots</span>
+          <span class="chip" data-tl="water" aria-pressed="true">Water / infra</span>
+        </div>
+        <div class="tag" id="twinTag" style="right:10px;top:10px"></div>
+        <div class="tag" style="left:10px;bottom:10px"><span class="caveat">Illustrative averages, not site-specific predictions.</span></div>
+      </div>
+      <div class="miles" id="miles"></div>
+      <div style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between" class="cap"><span>Canopy cover · % of plot</span><span id="covPct" class="g mono" style="font-size:14px">0%</span></div>
+        <div style="height:10px;border-radius:6px;background:#10261f;margin-top:6px;overflow:hidden"><div id="covBar" style="height:100%;width:0;background:linear-gradient(90deg,#16a34a,#4dff9a);box-shadow:0 0 12px #4dff9a"></div></div>
+      </div>
+    </div>
+
+    <div class="glass card">
+      <h3>Global atlas · real places <span class="pill cy">PUBLIC FACTS · SCENARIO TEMPLATES</span></h3>
+      <div class="atlas">
+        <div class="atlasmap"><canvas id="atlas"></canvas><div class="tag" id="atlasTag" style="left:10px;bottom:10px">Click a site</div></div>
+        <div class="atlasside">
+          <div class="chips" id="siteFilter"><span class="chip" data-f="all" aria-pressed="true">All</span><span class="chip" data-f="mangrove" aria-pressed="false">Mangrove coasts</span><span class="chip" data-f="urban" aria-pressed="false">Urban forests</span></div>
+          <div id="siteCard"></div>
+        </div>
+      </div>
+      <div class="mut" style="font-size:11px;margin-top:8px">Real places with well-known public facts. Loading one only switches the model's species template — the projection is still an illustrative scenario, not a forecast for that site. The Treegens plots above are listed as “coastal mangrove belt” / “municipal programme”, not at these sites.</div>
+    </div>
+
+    <div class="glass card">
+      <h3>What the forest does · ecosystem stages <span class="pill g" id="ecoPill">0 / 6 active</span></h3>
+      <div class="eco" id="eco"></div>
+      <div class="mut" style="font-size:11px;margin-top:8px">Qualitative stages keyed to modeled canopy cover — the typical sequence described in restoration literature, not measured outcomes at any plot.</div>
+    </div>
+
+    <div class="grid2">
+      <div class="glass card">
+        <h3>Carbon accumulation <span class="mono g" id="cTot" style="font-size:12px">0 tCO₂e</span></h3>
+        <div class="mut" style="font-size:10.5px;margin:-6px 0 6px">Model projection — not a carbon claim, credit or registry figure.</div>
+        <div class="chartbox"><canvas id="chC"></canvas></div>
+        <div class="split">
+          <div><span class="cap">Above-ground</span><b id="cAgb">0</b></div>
+          <div><span class="cap">Roots (r:s)</span><b id="cRoot">0</b></div>
+          <div><span class="cap">Per hectare</span><b id="cHa">0</b></div>
+        </div>
+      </div>
+      <div class="glass card">
+        <h3>Canopy & cooling <span class="mono cy" id="cCool" style="font-size:12px">0.0 °C</span></h3>
+        <div class="chartbox"><canvas id="chV"></canvas></div>
+        <div class="split">
+          <div><span class="cap">Mean height</span><b id="cH">0 m</b></div>
+          <div><span class="cap">Crown / tree</span><b id="cCr">0 m²</b></div>
+          <div><span class="cap">Shade proxy</span><b id="cShade">0%</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid3">
+      <div class="glass card">
+        <h3>Educational insight</h3>
+        <div id="insight" style="font-size:13px"></div>
+      </div>
+      <div class="glass card">
+        <h3>Verification · Proof of Tree <span class="pill am">NOT LINKED</span></h3>
+        <div style="font-size:12.5px">Treegens <b>Proof of Tree</b> is the verification leg: geo-tagged planting evidence → on-chain claim (<span class="mono">TreeNFT.sol</span>).</div>
+        <div class="gate" style="margin-top:6px"><span class="dot"></span>Plot<span class="n mono" id="potPlot">—</span></div>
+        <div class="mut" style="font-size:11px" id="potMethod"></div>
+        <div class="gate"><span class="dot amber"></span>TREEGENS_TREASURY_WALLET<span class="n am">unset</span></div>
+        <div class="gate"><span class="dot off"></span>Verified plots<span class="n">0</span></div>
+        <div class="gate"><span class="dot off"></span>Tree payments recorded<span class="n">0</span></div>
+        <div class="mut" style="font-size:11px">No IDs are shown until a real claim exists.</div>
+      </div>
+      <div class="glass card">
+        <h3>Equivalents at this year</h3>
+        <ul class="eq" style="margin:0;padding-left:18px;font-size:13px" id="equiv"></ul>
+        <div class="mut" style="font-size:10.5px;margin-top:6px">Scale comparisons for the model output, not claims. Car-year ≈ 4.6 tCO₂e (US EPA typical passenger vehicle).</div>
+      </div>
+    </div>
+
+    <div class="glass card">
+      <h3>Physical-AI narrative <span class="pill cy">KNOWLEDGE / INSTRUCTION-ONLY HERE</span></h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;font-size:12.5px">
+        <div><b class="cy">NVIDIA Omniverse</b><br><span class="mut">How a full-scale twin would be authored: OpenUSD stages, SimReady assets. This page is the 8 GB, no-GPU stand-in.</span></div>
+        <div><b class="cy">NVIDIA Cosmos</b><br><span class="mut">World-model storytelling for “what could this plot look like in 15 years”. GPU-only — adopted as instruction-only skills.</span></div>
+        <div><b class="g">Treegens Proof of Tree</b><br><span class="mut">The bridge from a simulated tree to a verified, paid-for real one. Not linked yet.</span></div>
+        <div><b class="g">EduTwin (sap-canopy)</b><br><span class="mut">Same formulas as this dashboard, served by Gradio on :7860 with optional local Ollama narration.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- right: Asimov -->
+  <div class="col">
+    <div class="glass card chat" style="position:sticky;top:14px;height:calc(100vh - 58px - var(--dock) - 28px)">
+      <div class="who" style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+        <div class="av"><svg viewBox="0 0 24 24" fill="none" stroke="#063" stroke-width="2"><circle cx="12" cy="10" r="5"/><path d="M9 10h.01M15 10h.01M6 20c1.5-3 4-4 6-4s4.5 1 6 4"/></svg></div>
+        <div><b>ASIMOV AI AGENT</b><div class="cap">Explaining the simulation</div></div>
+        <span class="pill g" style="margin-left:auto" id="aiMode">SCRIPTED</span>
+      </div>
+      <div class="msgs" id="msgs" aria-live="polite"></div>
+      <div class="sugg" id="sugg"></div>
+      <form class="chatin" id="chatForm"><input id="chatIn" placeholder="Ask anything about the simulation…" autocomplete="off"><button class="btn" type="submit" aria-label="Send">➤</button></form>
+      <div class="olla"><label><input type="checkbox" id="useOllama"> Use local Ollama</label><input type="text" id="ollamaModel" value="llama3.2" aria-label="Ollama model"><span id="ollamaStat"></span></div>
+      <div class="mut" style="font-size:10.5px;margin-top:6px">On-device only. Answers are educational and simulation-based — illustrative averages, not site-specific predictions. No price talk.</div>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- ═════════════ MISSION CONTROL ═════════════ -->
+<section class="view scroll" id="v-status" aria-label="Mission control">
+ <div class="mc">
+  <div class="glass hero-mc span12">
+    <div><div class="cap">Shaddai Asimov Project · snapshot 2026-11-06</div><h1>MISSION CONTROL</h1><p>Three legs · seven rules · every gate run, not assumed.</p></div>
+    <div class="stats">
+      <div><b>65/65</b><span>backend jest</span></div>
+      <div><b>31</b><span>solc checks</span></div>
+      <div><b>84</b><span>contract asserts</span></div>
+      <div><b>10/10</b><span>endpoint sweep</span></div>
+      <div><b class="cy">48</b><span>NVIDIA skills</span></div>
+    </div>
+  </div>
+
+  <div class="glass card span4">
+    <h3>Leg 1 · Education <span class="pill g">LIVE</span></h3>
+    <div class="gate"><span class="dot"></span>EduTwin (Gradio)<span class="n">:7860</span></div>
+    <div class="gate"><span class="dot"></span>Growth model (deterministic)<span class="n g">offline</span></div>
+    <div class="gate"><span class="dot"></span>Asimov Center (this page)<span class="n g">ready</span></div>
+    <div class="gate"><span class="dot amber"></span>Ollama narration<span class="n am">optional</span></div>
+    <div class="gate"><span class="dot"></span>README media (shots + demo)<span class="n g">this build</span></div>
+  </div>
+  <div class="glass card span4">
+    <h3>Leg 2 · Payments <span class="pill g">GUARDED</span></h3>
+    <div class="gate"><span class="dot"></span>HIP-1 plan route<span class="n g">200 ✓</span></div>
+    <div class="gate"><span class="dot"></span>Supply invariant (R6)<span class="n g">intact</span></div>
+    <div class="gate"><span class="dot off"></span>Trading ready<span class="n">false (R1)</span></div>
+    <div class="gate"><span class="dot off"></span>x402 fee routing<span class="n">OFF (R5)</span></div>
+    <div class="gate"><span class="dot"></span>Fee policy bps<span class="n">4000/4000/2000</span></div>
+  </div>
+  <div class="glass card span4">
+    <h3>Leg 3 · Contracts <span class="pill g">GREEN</span></h3>
+    <div class="gate"><span class="dot"></span>solc 0.8.24 build<span class="n g">31 ✓</span></div>
+    <div class="gate"><span class="dot"></span>Forge suites (type-check only)<span class="n g">3 ✓</span></div>
+    <div class="gate"><span class="dot"></span>ganache behavioural<span class="n g">84 ✓</span></div>
+    <div class="gate"><span class="dot"></span>Spec flaws fixed<span class="n g">6</span></div>
+    <div class="gate"><span class="dot amber"></span>forge test<span class="n am">not installed</span></div>
+  </div>
+
+  <div class="glass card span7">
+    <h3>Treasury transparency <span class="pill cy">INTENT-ONLY (R2)</span></h3>
+    <div class="grid3" style="gap:10px">
+      <div><div class="cap">Liquidity pools</div><div class="big">0</div></div>
+      <div><div class="cap">Tree payments</div><div class="big">0</div></div>
+      <div><div class="cap">Settlement intents</div><div class="big">0</div></div>
+    </div>
+    <p class="mut" style="font-size:12.5px;margin:10px 0 0">Nothing here moves money on-chain. The treasury writes an <b>intent</b>; a human-reviewed settler — which does not exist yet — is the only thing allowed to execute it. Credits (SHAD-Credits, scale 100) never enter the cents ledger.</p>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="probeBtn">⟳ Probe local backend :3000</button>
+      <span class="mut" style="font-size:11.5px">GET /api/sap/health · /policy · /treasury/report (read-only)</span>
+    </div>
+    <div id="probeOut">Snapshot values shown. Start the backend (cd backend; npm start) and probe to read live.</div>
+  </div>
+  <div class="glass card span5">
+    <h3>$ASIMOV · facts only <span class="pill am">UTILITY-FIRST (R7)</span></h3>
+    <dl class="kv">
+      <dt>Chain</dt><dd>Solana · Token-2022</dd>
+      <dt>Mint</dt><dd>DaFB3rooEtLMoQh9P8xAkSUeJ8utuh3VBfwnZAaysCXC</dd>
+      <dt>Decimals</dt><dd>6</dd>
+      <dt>Supply</dt><dd>999,798,654.675747</dd>
+      <dt>Mint authority</dt><dd class="g">revoked</dd>
+      <dt>Transfer fee</dt><dd>3% (Token-2022 extension)</dd>
+      <dt>Pool</dt><dd>Raydium LaunchLab bonding curve (pairs NVDAx)</dd>
+      <dt>Hyperliquid</dt><dd class="am">not listed</dd>
+      <dt>Role</dt><dd style="font-family:var(--sans)">fees → liquidity intent, tree payments, plot funding</dd>
+    </dl>
+    <p class="mut" style="font-size:11.5px;margin:8px 0 0">No price ticker on purpose: this page explains trees, it doesn't market a token. Shaddai works without $ASIMOV; the 40% liquidity slice is an S.A.P.-only, intent-only policy.</p>
+  </div>
+
+  <div class="glass card span7">
+    <h3>Treegens plots · adapter listing <span class="pill am">OPEN · 0 FUNDED · 0 VERIFIED</span></h3>
+    <table class="vt">
+      <tr><th>Plot</th><th>Ecosystem</th><th>Area</th><th>Stems</th><th>Evidence method</th></tr>
+      <tr><td class="mono">TG-MANGROVE-001</td><td>Mangrove · coastal belt</td><td>1.0 ha</td><td>1,200</td><td>before/after video · GPS · community check</td></tr>
+      <tr><td class="mono">TG-MANGROVE-002</td><td>Mangrove · coastal belt</td><td>2.5 ha</td><td>3,000</td><td>before/after video · GPS · community check</td></tr>
+      <tr><td class="mono">TG-URBAN-001</td><td>Urban street canopy</td><td>0.5 ha</td><td>25</td><td>before/after photos · GPS · community check</td></tr>
+    </table>
+    <p class="mut" style="font-size:11.5px;margin:8px 0 0">Claim ladder: model growth (“the twin grew”) → funding receipt (“N stems funded, pending verification”) → Proof of Tree (“N stems verified planted”). Carbon claims only with registry-issued evidence — never from this model.</p>
+  </div>
+  <div class="glass card span5">
+    <h3>Names that must not blur</h3>
+    <dl class="kv">
+      <dt>Asimov (agent)</dt><dd style="font-family:var(--sans)">QUILL's first sub-agent; planned 8th in-world Shaddai agent — robotics, health, plots</dd>
+      <dt>ASIMOV bot</dt><dd style="font-family:var(--sans)">external Grok bot that wrote the design page &amp; handoff</dd>
+      <dt>$ASIMOV</dt><dd style="font-family:var(--sans)">the Solana token above — optional to Shaddai</dd>
+      <dt>Sparks ledger</dt><dd style="font-family:var(--sans)">economy-service.js · closed-loop · no withdraw</dd>
+      <dt>$SPARKS</dt><dd style="font-family:var(--sans)">owner-intended native commerce token · HIP-1 path, deployment <span class="am">unverified</span></dd>
+      <dt>Value adapter</dt><dd style="font-family:var(--sans)"><span class="mono">VALUE_ADAPTER</span> (SAP v2, PROPOSED) · start <span class="mono">credits-offchain</span> / <span class="mono">hackathon-none</span> · <span class="mono">SAP_PAUSED</span> kill switch</dd>
+      <dt>Independence</dt><dd style="font-family:var(--sans)">Shaddai runs without $ASIMOV, Treegens, NVIDIA or any chain — all feature flags</dd>
+      <dt>SHAD-Credits</dt><dd style="font-family:var(--sans)">x402 soft currency · never in the cents ledger</dd>
+      <dt>Grok bridge</dt><dd style="font-family:var(--sans)" class="am">PROPOSED — no route, tool or schema exists yet</dd>
+    </dl>
+  </div>
+
+  <div class="glass card span6">
+    <h3>The seven rules</h3>
+    <div class="rules">
+      <div><b>R1</b><span>No HTTP route may trade. Trading sits behind a four-key gate; the public surface sets none.</span></div>
+      <div><b>R2</b><span>The treasury records intent; a human-reviewed settler executes. Do not add one.</span></div>
+      <div><b>R3</b><span>Credits are not money. <span class="mono">creditFeeAllocations</span> ≠ <span class="mono">settlements</span>.</span></div>
+      <div><b>R4</b><span>Reuse <span class="mono">splitByPolicy</span> — one source of truth for the 40/40/20 split.</span></div>
+      <div><b>R5</b><span>x402 fee routing is additively gated: <span class="mono">SAP_X402_FEE_ROUTING=1</span>, default OFF.</span></div>
+      <div><b>R6</b><span>HIP-1 supply invariant is not negotiable — reconcile callers, never the validator.</span></div>
+      <div><b>R7</b><span>No speculative token launches. Utility-first only.</span></div>
+    </div>
+  </div>
+  <div class="glass card span6">
+    <h3>Blocked — on money, keys or hardware</h3>
+    <div class="gate"><span class="dot red"></span>Real HIP-1 deployment<span class="n rd">500 HYPE floor</span></div>
+    <div class="gate"><span class="dot red"></span>Trading<span class="n rd">no funded acct · R1</span></div>
+    <div class="gate"><span class="dot red"></span>On-chain settlement<span class="n rd">no settler · R2</span></div>
+    <div class="gate"><span class="dot amber"></span>Tree-fund destination<span class="n am">wallet unset</span></div>
+    <div class="gate"><span class="dot amber"></span>GPU-dependent NVIDIA skills<span class="n am">25 instruction-only</span></div>
+    <h3 style="margin-top:14px">Open actions</h3>
+    <div class="gate"><span class="dot amber"></span>press.html “meme token” wording vs R7<span class="n am">owner decision</span></div>
+    <div class="gate"><span class="dot amber"></span>Rotate Stripe publishable key → env<span class="n am">pending</span></div>
+    <div class="gate"><span class="dot red"></span>C: drive free space<span class="n rd">~0.34 GB</span></div>
+  </div>
+
+  <div class="glass card span8">
+    <h3>NVIDIA admission verdicts <span class="pill cy">RECORDED BEFORE INSTALL</span></h3>
+    <table class="vt">
+      <tr><th>Repo / tool</th><th>Verdict</th><th>Why</th></tr>
+      <tr><td>NVIDIA/skills</td><td class="g">✅ ADOPTED</td><td>48 of 437 curated · 23 run without GPU · 25 instruction-only</td></tr>
+      <tr><td>NVIDIA-ISAAC-ROS</td><td class="rd">❌ NOT NOW</td><td>No NVIDIA GPU (Intel HD 620) · ~8 GB, no Jetson · no ROS 2 · Windows not Ubuntu. Idea kept via Omniverse/Cosmos/TAO/FoundationPose skills; future edge-node drop-in (Apache-2.0).</td></tr>
+      <tr><td>TensorRT · nvidia-docker · container-toolkit · xmrig-nvidia</td><td class="rd">❌</td><td>Require NVIDIA silicon / out of scope</td></tr>
+      <tr><td>NVIDIAImageScaling</td><td class="am">⏸️ LATER</td><td>Optional</td></tr>
+    </table>
+  </div>
+  <div class="glass card span4">
+    <h3>Compliance gates</h3>
+    <div class="gate"><span class="dot amber"></span>Hyperliquid geoblocks US residents</div>
+    <div class="gate"><span class="dot amber"></span>Token-linked rewards draw Howey analysis</div>
+    <div class="gate"><span class="dot amber"></span>No custody · no routing user flow through our own pool</div>
+    <h3 style="margin-top:14px">Repos</h3>
+    <dl class="kv">
+      <dt>Public</dt><dd>IzzoSol/shaddai-asimov-project</dd>
+      <dt>Public</dt><dd>IzzoSol/shaddai-agents-mcp</dd>
+      <dt>Private</dt><dd>IzzoSol/Shaddai · shaddai-mcp</dd>
+    </dl>
+  </div>
+ </div>
+</section>
+
+<!-- ═════════════ DIAGRAMS ═════════════ -->
+<section class="view scroll" id="v-diagrams" aria-label="System diagrams">
+ <div class="dg">
+  <div class="dg-nav">
+    <a class="chip" href="#d-arch" data-jump>1 · System architecture</a>
+    <a class="chip" href="#d-council" data-jump>2 · Agent council</a>
+    <a class="chip" href="#d-fee" data-jump>3 · Fee & treasury flow</a>
+    <a class="chip" href="#d-hip1" data-jump>4 · HIP-1 planner</a>
+    <a class="chip" href="#d-model" data-jump>5 · Growth model</a>
+    <a class="chip" href="#d-nvidia" data-jump>6 · NVIDIA admission</a>
+  </div>
+  <div class="legend">
+    <span><i style="border-color:#4dff9a"></i>live flow</span>
+    <span><i style="border-color:#3ef0e0;border-top-style:dotted"></i>read-only</span>
+    <span><i style="border-color:#ffc24d"></i>gated / optional</span>
+    <span><i style="border-color:#ff6b7a"></i>blocked / does not exist</span>
+  </div>
+
+  <section id="d-arch"><h2>1 · System architecture</h2>
+    <p class="lede">Three legs behind a public edge. The payments leg is mirrored from the private monolith (<span class="mono">Shaddai-3d · feat/sap-treasury</span>); every arrow into money ends at an intent, never an execution.</p>
+    <div class="glass frame"><div id="dgArch"></div></div></section>
+
+  <section id="d-council"><h2>2 · Agent council → Asimov</h2>
+    <p class="lede">SHADDAI orchestrates six specialists. Asimov is QUILL's first sub-agent: writing and education for regenerative, physical-world work. PIKADON reviews Asimov's copy against R7.</p>
+    <div class="glass frame"><div id="dgCouncil"></div></div></section>
+
+  <section id="d-fee"><h2>3 · Fee & treasury flow</h2>
+    <p class="lede">Two ledgers that never touch. Real money is counted in cents; the x402 fee is SHAD-Credits, split once by <span class="mono">splitByPolicy</span>, and lands as intents waiting for a settler that deliberately doesn't exist.</p>
+    <div class="glass frame"><div id="dgFee"></div></div></section>
+
+  <section id="d-hip1"><h2>4 · HIP-1 deployment planner</h2>
+    <p class="lede">maxSupply and genesis allocation are two views of one number: state either and the other is derived; state both differently and it is a 400. The validator is never relaxed.</p>
+    <div class="glass frame"><div id="dgHip"></div></div></section>
+
+  <section id="d-model"><h2>5 · Growth model (EduTwin)</h2>
+    <p class="lede">The exact pipeline the Simulation view runs, per tree, then scaled by survivors. Change a scenario input and every chart re-derives from these formulas.</p>
+    <div class="glass frame"><div id="dgModel"></div></div></section>
+
+  <section id="d-nvidia"><h2>6 · NVIDIA admission rule</h2>
+    <p class="lede">A repo enters only if it runs on this machine, or is knowledge/instruction-only. The verdict row is written before anything is installed.</p>
+    <div class="glass frame"><div id="dgNv"></div></div></section>
+
+  <p class="caveat" style="margin-top:20px">All ecological figures in this project are illustrative averages, not site-specific predictions.</p>
+ </div>
+</section>
+</main>
+
+<!-- shared timeline dock -->
+<div id="dock">
+  <button class="btn" id="bReset" title="Reset to year 0">⟲ Reset</button>
+  <button class="btn play" id="bPlay" aria-label="Play"><svg viewBox="0 0 24 24" fill="#eafff4" id="playIco"><path d="M7 4l13 8-13 8z"/></svg></button>
+  <div id="yLabel">YEAR 0.0 <small>| 2026</small></div>
+  <input type="range" id="yr" min="0" max="15" step="0.01" value="0" aria-label="Simulation year">
+  <div class="ticks" id="ticks"></div>
+  <button class="btn sm" id="bSpeed" title="Playback speed">1×</button>
+</div>
+
+<footer>Illustrative averages, not site-specific predictions. · Not affiliated with or endorsed by NVIDIA or Treegens.</footer>
+
+<!-- ═════════════ CORE: model, dashboard, chat, diagrams ═════════════ -->
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const fmt=(n,d=0)=>Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const BASE_YEAR=2026, YEARS=15;
+
+/* Species table — identical to sap-canopy/urban_forest_explainer.py SPECIES. */
+const SPECIES={
+  rhizophora:{name:'Red mangrove · Rhizophora mangle',max_h:15,k:0.12,cf:0.70,carb:0.55,blue:true},
+  avicennia:{name:'Black mangrove · Avicennia germinans',max_h:12,k:0.13,cf:0.65,carb:0.50,blue:true},
+  oak:{name:'Urban oak · Quercus alba',max_h:25,k:0.08,cf:0.60,carb:0.45,blue:false},
+  maple:{name:'Sugar maple · Acer saccharum',max_h:22,k:0.09,cf:0.55,carb:0.42,blue:false},
+  platanus:{name:'Street tree · Platanus × acerifolia',max_h:20,k:0.10,cf:0.50,carb:0.40,blue:false}
+};
+/* Treegens plots — copied from backend/data/sap-plots.json (the adapter's listing; status "open", nothing verified yet). */
+const PLOTS=[
+  {id:'TG-MANGROVE-001',name:'Mangrove Restoration Plot 001',eco:'mangrove',region:'Coastal mangrove belt',ha:1.0,stems:1200,cents:240,ver:'before/after video, GPS, community check'},
+  {id:'TG-MANGROVE-002',name:'Mangrove Restoration Plot 002',eco:'mangrove',region:'Coastal mangrove belt',ha:2.5,stems:3000,cents:240,ver:'before/after video, GPS, community check'},
+  {id:'TG-URBAN-001',name:'Urban Street Canopy Pilot',eco:'urban',region:'Municipal street tree programme',ha:0.5,stems:25,cents:14500,ver:'before/after photo set, GPS, community check'}];
+/* Real places — well-known public facts only, used as species templates. sp = model stand-in species. */
+const SITES=[
+  {k:'sundarbans',n:'Sundarbans',c:'Bangladesh · India',t:'mangrove',lat:21.9,lon:89.2,sp:'avicennia',f:'The largest single block of tidal mangrove forest on Earth and a UNESCO World Heritage site — home of the Bengal tiger.'},
+  {k:'everglades',n:'Everglades & Ten Thousand Islands',c:'Florida, USA',t:'mangrove',lat:25.85,lon:-81.4,sp:'rhizophora',f:'Red, black and white mangroves line southwest Florida; Everglades National Park protects one of the largest mangrove systems in the Western Hemisphere.'},
+  {k:'gazi',n:'Gazi Bay',c:'Kenya',t:'mangrove',lat:-4.42,lon:39.5,sp:'rhizophora',f:'Home of Mikoko Pamoja, a community-run mangrove project funded by carbon sales since 2013.'},
+  {k:'demak',n:'Demak, Central Java',c:'Indonesia',t:'mangrove',lat:-6.85,lon:110.5,sp:'avicennia',f:'Villages here lost land to coastal erosion; “Building with Nature” uses permeable fences to trap sediment so mangroves can return.'},
+  {k:'saloum',n:'Saloum Delta',c:'Senegal',t:'mangrove',lat:13.8,lon:-16.6,sp:'rhizophora',f:'A UNESCO World Heritage delta of mangrove channels and islands, with long-running community replanting.'},
+  {k:'niger',n:'Niger Delta',c:'Nigeria',t:'mangrove',lat:4.8,lon:6.0,sp:'rhizophora',f:'One of Africa’s largest mangrove areas, and one of the most damaged by oil pollution.'},
+  {k:'braganca',n:'Amazon mangrove coast',c:'Pará & Maranhão, Brazil',t:'mangrove',lat:-0.9,lon:-46.7,sp:'rhizophora',f:'Part of the world’s largest continuous mangrove belt, along Brazil’s macrotidal northern coast.'},
+  {k:'abudhabi',n:'Abu Dhabi coast',c:'United Arab Emirates',t:'mangrove',lat:24.45,lon:54.4,sp:'avicennia',f:'Grey mangrove (Avicennia marina) thrives in the hot, salty Gulf; the city protects it in Mangrove National Park.'},
+  {k:'phoenix',n:'Phoenix',c:'Arizona, USA',t:'urban',lat:33.45,lon:-112.07,sp:'platanus',f:'Its Tree and Shade Master Plan set a goal of 25% canopy cover by 2030 — shade is a heat-safety issue here.'},
+  {k:'melbourne',n:'Melbourne',c:'Australia',t:'urban',lat:-37.81,lon:144.96,sp:'platanus',f:'The City of Melbourne’s Urban Forest Strategy targets 40% canopy cover by 2040.'},
+  {k:'singapore',n:'Singapore',c:'Singapore',t:'urban',lat:1.35,lon:103.82,sp:'oak',f:'The OneMillion Trees movement aims to plant one million more trees across the island by 2030.'},
+  {k:'medellin',n:'Medellín',c:'Colombia',t:'urban',lat:6.24,lon:-75.58,sp:'platanus',f:'Its Green Corridors (Corredores Verdes) planted shade along roads and streams to cool the city.'},
+  {k:'paris',n:'Paris',c:'France',t:'urban',lat:48.86,lon:2.35,sp:'platanus',f:'The city pledged to plant 170,000 trees by 2026, including small urban forests.'},
+  {k:'milan',n:'Milan',c:'Italy',t:'urban',lat:45.46,lon:9.19,sp:'maple',f:'ForestaMi aims to plant three million trees across the metropolitan area by 2030.'},
+  {k:'nyc',n:'New York City',c:'USA',t:'urban',lat:40.71,lon:-74.0,sp:'oak',f:'MillionTreesNYC planted its millionth tree in 2015.'}];
+const P={plot:'TG-MANGROVE-001',site:'sundarbans',species:'rhizophora',trees:1200,ha:1,mort:3,rs:0.45,startAge:1};
+
+/* Model. Per-tree: h = H(1−e^(−k·age)); crown A = π(h·f/2)²; biomass B = h·A·c (explainer proxy);
+   carbon C = B·0.5·0.47/1000 t (explainer); CO₂e = C·44/12. Stand: survivors N(1−m)^y, roots = AGB·r:s,
+   cover = 1 − e^(−N·A/area) (random-overlap). Habitat & cooling are labelled proxies. */
+function at(y){
+  const s=SPECIES[P.species], age=y+P.startAge;
+  const h=s.max_h*(1-Math.exp(-s.k*age));
+  const crown=Math.PI*Math.pow(h*s.cf/2,2);
+  const biomass=h*crown*s.carb;
+  const cTree=biomass*0.5*0.47/1000;
+  const surv=Math.pow(1-P.mort/100,y);
+  const alive=P.trees*surv;
+  const agb=cTree*alive*44/12, roots=agb*P.rs, total=agb+roots;
+  const cover=1-Math.exp(-alive*crown/(P.ha*1e4));
+  const bio=0.12+0.72*Math.pow(cover,0.8)*(s.blue?1:0.85);
+  const cool=-3.2*cover;
+  return {y,h,crown,alive,surv,agb,roots,total,cover,bio,cool,perHa:total/P.ha};
+}
+const SAP=window.SAP={year:0,playing:false,speed:1,P,SPECIES,PLOTS,SITES,at,cur:null,series:[],ver:0,layers:{},view:'immersive'};
+function rebuild(){SAP.series=[];for(let i=0;i<=YEARS*4;i++)SAP.series.push(at(i/4));SAP.ver++;}
+
+/* ── view routing ─────────────────────────────── */
+function go(v){
+  SAP.view=v;
+  $$('nav button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));
+  $$('.view').forEach(s=>s.classList.toggle('active',s.id==='v-'+v));
+  document.body.dataset.dock=(v==='immersive'||v==='sim')?'1':'0';
+  if(location.hash!=='#'+v)history.replaceState(null,'','#'+v);
+  if(v==='sim')requestAnimationFrame(()=>{sizeCanvases();drawAll(true)});
+  window.dispatchEvent(new Event('resize'));
+}
+$$('nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+
+/* ── timeline ─────────────────────────────────── */
+const yr=$('#yr');
+const MILES=[0,3,6,9,12,15];
+$('#ticks').innerHTML=MILES.map(m=>`<button data-y="${m}">Y${m}</button>`).join('');
+$('#miles').innerHTML=MILES.map(m=>`<button data-y="${m}"><span>YEAR</span><b>${m}</b></button>`).join('');
+$$('[data-y]').forEach(b=>b.onclick=()=>{setPlaying(false);setYear(+b.dataset.y)});
+function setYear(y){SAP.year=Math.max(0,Math.min(YEARS,y));SAP.cur=at(SAP.year);updateText();drawAll();}
+window.setSimYear=y=>{if(SAP.playing)setPlaying(false);setYear(y)};
+yr.oninput=()=>{setPlaying(false);setYear(+yr.value)};
+function setPlaying(p){
+  if(p&&SAP.year>=YEARS)SAP.year=0;
+  SAP.playing=p;
+  $('#playIco').innerHTML=p?'<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>':'<path d="M7 4l13 8-13 8z"/>';
+  $('#bPlay').setAttribute('aria-label',p?'Pause':'Play');
+  $('#hDot').className='dot'+(p?'':' off');$('#hRun').textContent=p?'RUNNING':'PAUSED';
+}
+$('#bPlay').onclick=()=>setPlaying(!SAP.playing);
+$('#bReset').onclick=()=>{setPlaying(false);setYear(0)};
+$('#bSpeed').onclick=e=>{SAP.speed=SAP.speed===1?2:SAP.speed===2?4:SAP.speed===4?0.5:1;e.target.textContent=SAP.speed+'×'};
+addEventListener('keydown',e=>{if(e.code==='Space'&&!/INPUT|TEXTAREA|SELECT|BUTTON/.test(document.activeElement.tagName)&&document.body.dataset.dock==='1'){e.preventDefault();setPlaying(!SAP.playing)}});
+let lastT=performance.now();
+function tick(t){
+  const dt=Math.min(0.1,(t-lastT)/1000);lastT=t;
+  if(SAP.playing){const y=SAP.year+dt*SAP.speed*0.75;if(y>=YEARS){setYear(YEARS);setPlaying(false)}else setYear(y);}
+  if(SAP.view==='sim'){drawTwin(t/1000);drawAtlas()}
+  requestAnimationFrame(tick);
+}
+
+/* ── narration (Asimov / QUILL voice) ─────────── */
+function narrate(c){
+  const s=SPECIES[P.species], y=c.y;
+  const co2=fmt(c.total), cov=Math.round(c.cover*100);
+  if(s.blue){
+    if(y<2.5)return `<b>Year ${y.toFixed(1)} · Establishment.</b> Propagules are rooting in intertidal mud. This is when most losses happen${c.alive<P.trees-0.5?`: at ${P.mort}%/yr mortality, ${fmt(P.trees-c.alive)} of ${fmt(P.trees)} are already lost in this scenario`:` — none lost yet, but at ${P.mort}%/yr the first year decides a lot`}. Carbon is tiny so far: ${co2} tCO₂e.`;
+    if(y<6.5)return `<b>Year ${y.toFixed(1)} · Prop roots.</b> Stilt roots start trapping sediment and slowing tides. Canopy cover is ${cov}%. In a full NVIDIA Omniverse twin this would be a USD stage with tidal physics; here it's a deterministic model a laptop can run.`;
+    if(y<10.5)return `<b>Year ${y.toFixed(1)} · Canopy closing.</b> Crowns begin to overlap (${cov}% cover), shading out weeds and cooling the water. Stored: ${co2} tCO₂e. Treegens Proof of Tree is how a simulated tree becomes a verified one.`;
+    return `<b>Year ${y.toFixed(1)} · Blue-carbon forest.</b> ${cov}% canopy, ~${fmt(c.h,1)} m tall, ${co2} tCO₂e stored above and below ground. Cosmos-style world models can render futures like this; the numbers underneath are the same simple formulas you can audit.`;
+  }
+  if(y<3)return `<b>Year ${y.toFixed(1)} · Street saplings.</b> Young trees barely shade the pavement yet — ${cov}% cover. Early watering decides survival.`;
+  if(y<8)return `<b>Year ${y.toFixed(1)} · Shade arrives.</b> ${cov}% canopy; perceived temperature under it is roughly ${c.cool.toFixed(1)} °C cooler in this proxy. ${co2} tCO₂e stored.`;
+  return `<b>Year ${y.toFixed(1)} · Urban forest.</b> ${cov}% canopy, ${co2} tCO₂e. Cooling, habitat and stormwater benefits now outweigh the carbon story.`;
+}
+function insight(){
+  return SPECIES[P.species].blue
+   ? `Mangroves are <b>blue-carbon</b> ecosystems: much of their carbon sits in roots and waterlogged soil, where it decays slowly. They also blunt storm surge. This model counts above-ground biomass plus roots via a root:shoot ratio; <b>sediment carbon is not modelled</b> — real totals are usually higher.`
+   : `Street trees earn their place through <b>shade and cooling</b> more than carbon. Canopy cover drives the cooling proxy; carbon follows biomass. Species, spacing and survival matter more than the planting count.`;
+}
+
+/* ── text updates ─────────────────────────────── */
+function updateText(){
+  const c=SAP.cur, y=c.y, p=(y/YEARS*100).toFixed(2)+'%';
+  yr.value=y;yr.style.setProperty('--p',p);
+  $('#miles').style.setProperty('--p',p);
+  const cal=BASE_YEAR+Math.floor(y);
+  $('#yLabel').innerHTML=`YEAR ${y.toFixed(1)} <small>| ${cal}</small>`;
+  $('#hYear').textContent='YEAR '+y.toFixed(1);
+  $('#sTime').textContent='YEAR '+y.toFixed(1);$('#sCal').textContent=cal;$('#sLive').textContent='YEAR '+Math.floor(y);
+  $$('[data-y]').forEach(b=>b.classList.toggle('on',Math.abs(+b.dataset.y-y)<0.05));
+  const cov=Math.round(c.cover*100);
+  // immersive HUD
+  $('#iYear').textContent=y.toFixed(1);$('#iCover').textContent=cov+'%';
+  $('#iCO2').textContent=fmt(c.total)+' t';$('#iAlive').textContent=fmt(c.alive);$('#iBio').textContent=c.bio.toFixed(2);
+  $('#narr').innerHTML=narrate(c);
+  // dashboard
+  const prev=at(Math.max(0,y-1));
+  const d=(a,b,dp=0,suf='')=>{const v=a-b;return (v>=0?'+':'')+fmt(v,dp)+suf+' vs last yr'};
+  $('#mCO2').textContent=fmt(c.total);$('#mCO2d').textContent=d(c.total,prev.total);
+  $('#mCov').textContent=cov+'%';$('#mCovd').textContent=d(c.cover*100,prev.cover*100,1,' pts');
+  $('#mBio').textContent=c.bio.toFixed(2);$('#mBiod').textContent=d(c.bio,prev.bio,2);
+  $('#mAlive').textContent=fmt(c.alive);$('#mAlived').textContent=d(c.alive,prev.alive);
+  $('#mAlived').style.color=c.alive<prev.alive?'var(--amber)':'var(--g)';
+  $('#covPct').textContent=cov+'%';$('#covBar').style.width=cov+'%';
+  $('#cTot').textContent=fmt(c.total)+' tCO₂e';
+  $('#cAgb').textContent=fmt(c.agb);$('#cRoot').textContent=fmt(c.roots);$('#cHa').textContent=fmt(c.perHa)+' t/ha';
+  $('#cCool').textContent=c.cool.toFixed(1)+' °C';
+  $('#cH').textContent=c.h.toFixed(1)+' m';$('#cCr').textContent=c.crown.toFixed(0)+' m²';$('#cShade').textContent=Math.round(c.cover*100*0.92)+'%';
+  $('#equiv').innerHTML=`<li><b class="g">${fmt(c.total/4.6,1)}</b> passenger cars off the road for a year</li>
+    <li><b class="g">${fmt(c.total/P.ha,0)}</b> tCO₂e per hectare</li>
+    <li><b class="g">${fmt(c.alive>0?c.total/c.alive*1000:0,0)}</b> kg CO₂e per surviving tree</li>`;
+  renderEco(c);
+  $('#twinTag').innerHTML=`<b class="g">${fmt(c.alive)}</b> trees · <b>${cov}%</b> canopy · ${P.ha} ha`;
+}
+
+/* ── charts (canvas) ──────────────────────────── */
+function prep(cv){const r=cv.getBoundingClientRect(),dpr=Math.min(devicePixelRatio||1,2);
+  if(cv.width!==Math.round(r.width*dpr)||cv.height!==Math.round(r.height*dpr)){cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr)}
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,r.width,r.height);return [g,r.width,r.height];}
+function lineChart(cv,lines,{yFmt=v=>fmt(v),xMax=YEARS,marker=SAP.year}={}){
+  const [g,W,H]=prep(cv);if(!W)return;
+  const L=44,R=10,T=12,B=22, w=W-L-R, h=H-T-B;
+  let yMax=0;lines.forEach(l=>l.d.forEach(p=>yMax=Math.max(yMax,p[1])));yMax=niceMax(yMax||1);
+  const X=x=>L+x/xMax*w, Y=v=>T+h-v/yMax*h;
+  g.font='10px '+getComputedStyle(document.body).getPropertyValue('--mono');g.fillStyle='#5f8a78';g.strokeStyle='rgba(94,255,170,.08)';
+  for(let i=0;i<=4;i++){const v=yMax*i/4,yy=Y(v);g.beginPath();g.moveTo(L,yy);g.lineTo(L+w,yy);g.stroke();g.textAlign='right';g.fillText(yFmt(v),L-6,yy+3)}
+  g.textAlign='center';for(let x=0;x<=xMax;x+=3)g.fillText(x,X(x),H-6);
+  lines.forEach(l=>{
+    const pts=l.d.filter(p=>p[0]<=marker+1e-6);
+    // full projection, faint
+    g.setLineDash([3,4]);g.strokeStyle=l.c+'44';g.lineWidth=1.2;g.beginPath();l.d.forEach((p,i)=>i?g.lineTo(X(p[0]),Y(p[1])):g.moveTo(X(p[0]),Y(p[1])));g.stroke();g.setLineDash([]);
+    if(pts.length<2)return;
+    const last=l.d.length?interp(l.d,marker):0;pts.push([marker,last]);
+    if(l.fill){const gr=g.createLinearGradient(0,T,0,T+h);gr.addColorStop(0,l.c+'55');gr.addColorStop(1,l.c+'00');g.fillStyle=gr;g.beginPath();g.moveTo(X(0),Y(0));pts.forEach(p=>g.lineTo(X(p[0]),Y(p[1])));g.lineTo(X(marker),Y(0));g.closePath();g.fill();}
+    g.strokeStyle=l.c;g.lineWidth=2.2;g.shadowColor=l.c;g.shadowBlur=8;g.beginPath();pts.forEach((p,i)=>i?g.lineTo(X(p[0]),Y(p[1])):g.moveTo(X(p[0]),Y(p[1])));g.stroke();g.shadowBlur=0;
+    g.fillStyle='#eafff4';g.beginPath();g.arc(X(marker),Y(last),4,0,7);g.fill();g.strokeStyle=l.c;g.lineWidth=2;g.stroke();
+    if(l.label){g.fillStyle=l.c;g.textAlign=X(marker)>W-90?'right':'left';g.font='600 11px '+getComputedStyle(document.body).getPropertyValue('--mono');g.fillText(l.label(last),X(marker)+(X(marker)>W-90?-8:8),Y(last)-8)}
+  });
+}
+function niceMax(v){const e=Math.pow(10,Math.floor(Math.log10(v))),f=v/e;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*e}
+function interp(d,x){for(let i=1;i<d.length;i++)if(d[i][0]>=x){const a=d[i-1],b=d[i],t=(x-a[0])/((b[0]-a[0])||1);return a[1]+(b[1]-a[1])*t}return d[d.length-1][1]}
+function spark(cv,key,c){const [g,W,H]=prep(cv);if(!W)return;const d=SAP.series;let m=0;d.forEach(p=>m=Math.max(m,p[key]));m=m||1;
+  g.strokeStyle=c;g.lineWidth=1.6;g.beginPath();let first=true;d.forEach(p=>{if(p.y>SAP.year+1e-6)return;const x=p.y/YEARS*W,y=H-3-(p[key]/m)*(H-6);first?g.moveTo(x,y):g.lineTo(x,y);first=false});g.stroke();
+  g.strokeStyle=c+'33';g.setLineDash([2,3]);g.beginPath();d.forEach((p,i)=>{const x=p.y/YEARS*W,y=H-3-(p[key]/m)*(H-6);i?g.lineTo(x,y):g.moveTo(x,y)});g.stroke();g.setLineDash([]);}
+
+/* ── 2-D twin (top-down plot) ─────────────────── */
+function rng(seed){return()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let TW={key:'',trees:[],Lx:1,Ly:1};
+function twinLayout(W,H){
+  const key=[P.trees,P.ha,P.species,Math.round(W),Math.round(H)].join('|');if(TW.key===key)return;
+  const area=P.ha*1e4, Lx=Math.sqrt(area*W/H), Ly=area/Lx, r=rng(1309), blue=SPECIES[P.species].blue, out=[];
+  const river=x=>Ly*(0.52+0.17*Math.sin(x/Lx*Math.PI*2.2+0.6)), rw=Ly*0.055, sea=y=>Lx*(0.9+0.03*Math.sin(y/Ly*9));
+  const road=(x,y)=>{const sx=Lx/4,sy=Ly/2,wd=Math.max(4,Lx*0.018);return Math.abs(((x+sx/2)%sx)-sx/2)<wd||Math.abs(y-sy)<wd};
+  const bldg=(x,y)=>{const cx=Math.floor(x/(Lx/4)),cy=Math.floor(y/(Ly/2));return (cx+cy)%2===0&&((x%(Lx/4))/(Lx/4)>0.3&&(x%(Lx/4))/(Lx/4)<0.7)&&((y%(Ly/2))/(Ly/2)>0.3&&(y%(Ly/2))/(Ly/2)<0.7)};
+  let guard=0;
+  while(out.length<P.trees&&guard++<P.trees*20){
+    const x=r()*Lx,y=r()*Ly;
+    if(blue){if(Math.abs(y-river(x))<rw*1.15||x>sea(y)-2)continue}else{if(road(x,y)||bldg(x,y))continue}
+    out.push({x,y,u:r(),v:0.8+r()*0.4,hue:r()});
+  }
+  TW={key,trees:out,Lx,Ly,river,rw,sea,blue,road,bldg};
+}
+function drawTwin(t=0){
+  const cv=$('#twin');const [g,W,H]=prep(cv);if(!W)return;twinLayout(W,H);
+  const s=W/TW.Lx, c=SAP.cur, L=SAP.layers, blue=TW.blue;
+  // ground
+  const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,blue?'#1d2a1a':'#1a1f1e');gr.addColorStop(1,blue?'#142116':'#121716');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  // grid
+  g.strokeStyle='rgba(94,255,170,.05)';g.lineWidth=1;for(let x=0;x<W;x+=24){g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}for(let y=0;y<H;y+=24){g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+  if(L.water!==false){
+    if(blue){
+      g.fillStyle='#0b3b44';g.beginPath();g.moveTo(TW.sea(0)*s,0);for(let y=0;y<=TW.Ly;y+=TW.Ly/40)g.lineTo(TW.sea(y)*s,y*s);g.lineTo(W,H);g.lineTo(W,0);g.fill();
+      g.strokeStyle='rgba(62,240,224,.35)';g.lineWidth=1.5;g.stroke();
+      g.beginPath();for(let x=0;x<=TW.Lx;x+=TW.Lx/80)g.lineTo(x*s,(TW.river(x)-TW.rw)*s);for(let x=TW.Lx;x>=0;x-=TW.Lx/80)g.lineTo(x*s,(TW.river(x)+TW.rw)*s);g.closePath();
+      const wg=g.createLinearGradient(0,0,W,0);wg.addColorStop(0,'#0d4a4f');wg.addColorStop(1,'#11666a');g.fillStyle=wg;g.fill();
+      g.strokeStyle='rgba(62,240,224,.5)';g.lineWidth=1;g.stroke();
+      // flow ticks
+      g.strokeStyle='rgba(180,255,245,.35)';for(let i=0;i<26;i++){const x=((i/26*TW.Lx)+t*6)%TW.Lx;const y=TW.river(x);g.beginPath();g.moveTo(x*s,y*s);g.lineTo((x+TW.Lx*0.012)*s,TW.river(x+TW.Lx*0.012)*s);g.stroke()}
+    }else{
+      g.fillStyle='#2a3031';for(let px=0;px<W;px+=2){for(let py=0;py<H;py+=2){}}
+      const sx=TW.Lx/4,wd=Math.max(4,TW.Lx*0.018);g.fillStyle='#2b3233';
+      for(let k=0;k<=4;k++)g.fillRect((k*sx-wd)*s,0,wd*2*s,H);g.fillRect(0,(TW.Ly/2-wd)*s,W,wd*2*s);
+      g.strokeStyle='rgba(255,220,120,.35)';g.setLineDash([6,8]);g.beginPath();g.moveTo(0,TW.Ly/2*s);g.lineTo(W,TW.Ly/2*s);g.stroke();g.setLineDash([]);
+      g.fillStyle='#39403f';g.strokeStyle='rgba(62,240,224,.25)';
+      for(let cx=0;cx<4;cx++)for(let cy=0;cy<2;cy++)if((cx+cy)%2===0){const x0=(cx+0.3)*sx*s,y0=(cy+0.3)*TW.Ly/2*s;g.fillRect(x0,y0,0.4*sx*s,0.4*TW.Ly/2*s);g.strokeRect(x0,y0,0.4*sx*s,0.4*TW.Ly/2*s)}
+    }
+  }
+  // heat
+  if(L.heat){const n=28,m=Math.round(n*H/W),cw=W/n,ch=H/m,cells=new Float32Array(n*m);
+    TW.trees.forEach(tr=>{if(tr.u>c.surv)return;const i=Math.min(n-1,tr.x*s/cw|0),j=Math.min(m-1,tr.y*s/ch|0);cells[j*n+i]+=c.crown*tr.v});
+    const cap=(cw/s)*(ch/s);for(let j=0;j<m;j++)for(let i=0;i<n;i++){const v=Math.min(1,cells[j*n+i]/cap);if(v<0.02)continue;g.fillStyle=`hsla(${140-v*110},90%,${30+v*25}%,${0.18+v*0.45})`;g.fillRect(i*cw,j*ch,cw-1,ch-1)}}
+  // trees
+  if(L.canopy!==false){
+    const rad=Math.max(0.6,(c.h*SPECIES[P.species].cf/2)*s);
+    TW.trees.forEach(tr=>{
+      const dead=tr.u>c.surv; if(dead){g.fillStyle='rgba(120,90,60,.35)';g.fillRect(tr.x*s-1,tr.y*s-1,2,2);return}
+      const r=rad*tr.v, l=24+tr.hue*14+Math.min(14,r*0.6);
+      g.fillStyle=`hsla(${blue?122+tr.hue*22:100+tr.hue*35},${48+tr.hue*20}%,${l}%,.82)`;
+      g.beginPath();g.arc(tr.x*s,tr.y*s,r,0,7);g.fill();
+      if(r>3){g.fillStyle=`hsla(110,60%,${l+14}%,.35)`;g.beginPath();g.arc(tr.x*s-r*0.25,tr.y*s-r*0.25,r*0.45,0,7);g.fill()}
+    });
+  }
+  // proof-of-tree plots
+  if(L.plots!==false){g.setLineDash([5,5]);g.strokeStyle='rgba(255,194,77,.55)';g.lineWidth=1.2;g.font='10px '+getComputedStyle(document.body).getPropertyValue('--mono');
+    for(let i=0;i<3;i++)for(let j=0;j<2;j++){const x=W/3*i+6,y=H/2*j+6,w=W/3-12,h=H/2-12;g.strokeRect(x,y,w,h);g.fillStyle='rgba(4,20,15,.75)';const lab=`${P.plot==='custom'?'SCENARIO':P.plot} · cell ${'ABCDEF'[j*3+i]} · PoT pending`;g.fillRect(x+4,y+h-20,g.measureText(lab).width+10,16);g.fillStyle='#ffc24d';g.fillText(lab,x+8,y+h-8)}
+    g.setLineDash([]);}
+  // lidar sweep
+  if(L.lidar!==false){const x=((t*0.12)%1)*W;const lg=g.createLinearGradient(x-80,0,x,0);lg.addColorStop(0,'rgba(77,255,154,0)');lg.addColorStop(1,'rgba(77,255,154,.18)');g.fillStyle=lg;g.fillRect(x-80,0,80,H);g.strokeStyle='rgba(140,255,200,.8)';g.lineWidth=1.5;g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}
+  // scale bar
+  const m50=50*s;g.strokeStyle='#cfeee0';g.lineWidth=2;g.beginPath();g.moveTo(W-20-m50,H-16);g.lineTo(W-20,H-16);g.stroke();g.fillStyle='#cfeee0';g.font='10px '+getComputedStyle(document.body).getPropertyValue('--mono');g.textAlign='right';g.fillText('50 m',W-20,H-22);g.textAlign='left';
+}
+$$('[data-tl]').forEach(ch=>{SAP.layers[ch.dataset.tl]=ch.getAttribute('aria-pressed')==='true';ch.onclick=()=>{const on=ch.getAttribute('aria-pressed')!=='true';ch.setAttribute('aria-pressed',on);SAP.layers[ch.dataset.tl]=on;drawTwin(performance.now()/1000)}});
+
+let lastDraw=-1;
+function drawAll(force){
+  if(SAP.view!=='sim')return;
+  const k=SAP.year.toFixed(2)+'|'+SAP.ver;if(!force&&k===lastDraw)return;lastDraw=k;
+  const d=SAP.series;
+  lineChart($('#chC'),[
+    {d:d.map(p=>[p.y,p.total]),c:'#4dff9a',fill:true,label:v=>fmt(v)+' tCO₂e'},
+    {d:d.map(p=>[p.y,p.agb]),c:'#3ef0e0'}]);
+  lineChart($('#chV'),[
+    {d:d.map(p=>[p.y,p.cover*100]),c:'#a3e635',fill:true,label:v=>Math.round(v)+'%'},
+    {d:d.map(p=>[p.y,-p.cool*25]),c:'#3ef0e0'}],{yFmt:v=>Math.round(v)+'%'});
+  spark($('#spCO2'),'total','#4dff9a');spark($('#spCov'),'cover','#a3e635');spark($('#spBio'),'bio','#3ef0e0');spark($('#spAlive'),'alive','#ffc24d');
+}
+function sizeCanvases(){lastDraw=-1}
+addEventListener('resize',()=>{sizeCanvases();drawAll(true)});
+
+/* ── scenario inputs ──────────────────────────── */
+$('#fSp').innerHTML=Object.entries(SPECIES).map(([k,s])=>`<option value="${k}">${s.name}</option>`).join('');
+$('#fPlot').innerHTML=PLOTS.map(p=>`<option value="${p.id}">${p.id} · ${p.ha} ha · ${fmt(p.stems)} stems</option>`).join('')+'<option value="custom">Custom scenario</option>';
+function applyPlot(id){
+  P.plot=id;const p=PLOTS.find(x=>x.id===id);
+  if(p){P.trees=p.stems;P.ha=p.ha;if((p.eco==='mangrove')!==SPECIES[P.species].blue)P.species=p.eco==='mangrove'?'rhizophora':'platanus';}
+}
+function bindInputs(){
+  const sync=()=>{
+    $('#fPlot').value=P.plot;const p=PLOTS.find(x=>x.id===P.plot);
+    $('#fPlotLab').textContent=p?'status: open':'not a real plot';
+    $('#fPlotInfo').innerHTML=p?`${p.name} · ${p.region}. Listed $${(p.cents/100).toFixed(2)}/stem in the adapter data. Nothing funded or verified yet.`:'Free-form scenario — not tied to a Treegens plot.';
+    $('#potPlot').textContent=p?p.id:'custom';$('#potMethod').textContent=p?'Evidence method: '+p.ver:'No plot selected.';
+    $('#iPlot').textContent=p?p.id:'custom';
+    $('#fSp').value=P.species;$('#fTrees').value=P.trees;$('#fHa').value=P.ha;$('#fMort').value=P.mort;$('#fRs').value=P.rs;
+    $('#fTreesV').textContent=fmt(P.trees);$('#fHaV').textContent=P.ha;$('#fMortV').textContent=P.mort+'%/yr';$('#fRsV').textContent=P.rs.toFixed(2);
+    $('#fSpLab').textContent=SPECIES[P.species].blue?'blue carbon':'urban';
+    $$('.field input[type=range]').forEach(r=>r.style.setProperty('--p',((r.value-r.min)/(r.max-r.min)*100)+'%'));
+    $('#simTitle').textContent=SPECIES[P.species].blue?'Mangrove Growth Simulation':'Urban Forest Simulation';
+    $('#insight').innerHTML=insight();
+  };
+  const ch=e=>{
+    if(e&&e.target.id==='fPlot')applyPlot($('#fPlot').value);
+    else{P.species=$('#fSp').value;P.trees=+$('#fTrees').value;P.ha=+$('#fHa').value;P.mort=+$('#fMort').value;P.rs=+$('#fRs').value;
+      const p=PLOTS.find(x=>x.id===P.plot);if(p&&(P.trees!==p.stems||P.ha!==p.ha||(p.eco==='mangrove')!==SPECIES[P.species].blue))P.plot='custom';}
+    rebuild();sync();setYear(SAP.year);drawAll(true);drawAtlas()};
+  ['#fPlot','#fSp','#fTrees','#fHa','#fMort','#fRs'].forEach(s=>$(s).addEventListener('input',ch));
+  SAP.resync=()=>{rebuild();sync();setYear(SAP.year);drawAll(true);drawAtlas()};
+  sync();
+}
+
+/* ── global atlas (real places) ──────────────── */
+let LANDDOTS=null,LANDRINGS=null,atlasFilter='all',atlasHover=null;
+const loadScript=src=>new Promise((ok,no)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s)});
+async function loadLand(){
+  try{
+    await loadScript('https://unpkg.com/topojson-client@3/dist/topojson-client.min.js');
+    const topo=await (await fetch('https://unpkg.com/world-atlas@2/land-110m.json')).json();
+    const fc=topojson.feature(topo,topo.objects.land),feats=fc.features||[fc],rings=[];
+    feats.forEach(f=>{const g=f.geometry,polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;polys.forEach(p=>p.forEach(r=>rings.push(r)))});
+    LANDRINGS=rings;
+    // rasterise once to an equirect mask, then sample a dot grid — cheap and looks like a holo map
+    const W=720,H=360,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');g.fillStyle='#fff';
+    rings.forEach(r=>{g.beginPath();r.forEach(([lo,la],i)=>{const x=(lo+180)/360*W,y=(90-la)/180*H;i?g.lineTo(x,y):g.moveTo(x,y)});g.closePath();g.fill('evenodd')});
+    const d=g.getImageData(0,0,W,H).data,dots=[];
+    for(let la=84;la>=-60;la-=1.6)for(let lo=-180;lo<180;lo+=1.6){const x=Math.round((lo+180)/360*W),y=Math.round((90-la)/180*H);if(d[(y*W+x)*4+3]>128)dots.push([lo,la])}
+    LANDDOTS=dots;SAP.landDots=dots;
+  }catch(e){LANDDOTS=null}
+  drawAtlas();
+}
+const AT={top:78,bot:-58};
+function atlasXY(lon,lat,W,H){return[(lon+180)/360*W,(AT.top-lat)/(AT.top-AT.bot)*H]}
+function drawAtlas(){
+  const cv=$('#atlas');if(!cv||SAP.view!=='sim')return;const [g,W,H]=prep(cv);if(!W)return;const t=performance.now()/1000;
+  g.fillStyle='#03100d';g.fillRect(0,0,W,H);
+  g.strokeStyle='rgba(94,255,170,.07)';g.lineWidth=1;
+  for(let lo=-180;lo<=180;lo+=30){const[x]=atlasXY(lo,0,W,H);g.beginPath();g.moveTo(x,0);g.lineTo(x,H);g.stroke()}
+  for(let la=-60;la<=75;la+=15){const[,y]=atlasXY(0,la,W,H);g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()}
+  g.strokeStyle='rgba(255,194,77,.18)';g.setLineDash([4,6]);[23.44,-23.44].forEach(la=>{const[,y]=atlasXY(0,la,W,H);g.beginPath();g.moveTo(0,y);g.lineTo(W,y);g.stroke()});g.setLineDash([]);
+  if(LANDDOTS){g.fillStyle='rgba(77,255,154,.38)';const r=Math.max(.9,W/900);LANDDOTS.forEach(([lo,la])=>{if(la<AT.bot||la>AT.top)return;const[x,y]=atlasXY(lo,la,W,H);g.fillRect(x-r/2,y-r/2,r,r)})}
+  else{g.fillStyle='#5f8a78';g.font='11px '+getComputedStyle(document.body).getPropertyValue('--mono');g.fillText('Coastlines need internet (world-atlas); sites still work offline.',12,20)}
+  g.fillStyle='rgba(255,194,77,.6)';g.font='9px '+getComputedStyle(document.body).getPropertyValue('--mono');{const[,y]=atlasXY(0,23.44,W,H);g.fillText('TROPIC OF CANCER',6,y-4)}{const[,y]=atlasXY(0,-23.44,W,H);g.fillText('TROPIC OF CAPRICORN',6,y-4)}
+  SITES.forEach(s=>{if(atlasFilter!=='all'&&s.t!==atlasFilter)return;const[x,y]=atlasXY(s.lon,s.lat,W,H),sel=s.k===P.site,hov=s.k===atlasHover,col=s.t==='mangrove'?'#4dff9a':'#3ef0e0';
+    if(sel){const pr=8+((t*.8)%1)*16;g.strokeStyle=col;g.globalAlpha=1-((t*.8)%1);g.beginPath();g.arc(x,y,pr,0,7);g.stroke();g.globalAlpha=1}
+    g.fillStyle=col;g.shadowColor=col;g.shadowBlur=sel||hov?16:8;g.beginPath();g.arc(x,y,sel?5.5:hov?5:3.6,0,7);g.fill();g.shadowBlur=0;
+    if(sel||hov){g.font='600 12px '+getComputedStyle(document.body).getPropertyValue('--sans');const tw=g.measureText(s.n).width+14,lx=Math.min(W-tw-4,x+10);g.fillStyle='rgba(3,16,13,.88)';g.fillRect(lx,y-22,tw,18);g.strokeStyle=col+'88';g.strokeRect(lx,y-22,tw,18);g.fillStyle='#e8fff4';g.fillText(s.n,lx+7,y-9)}});
+}
+function siteCard(){
+  const s=SITES.find(x=>x.k===P.site)||SITES[0],m=s.t==='mangrove';
+  $('#siteCard').innerHTML=`<div class="nm">${s.n}</div><div class="mut" style="font-size:12px">${s.c} · ${Math.abs(s.lat).toFixed(2)}°${s.lat>=0?'N':'S'} ${Math.abs(s.lon).toFixed(2)}°${s.lon>=0?'E':'W'}</div>
+   <div style="margin-top:6px"><span class="pill ${m?'g':'cy'}">${m?'MANGROVE COAST':'URBAN FOREST'}</span></div>
+   <div class="fact">${s.f}</div>
+   <div class="mut" style="font-size:11px">Model stand-in: ${SPECIES[s.sp].name}</div>
+   <button class="btn sm" id="useSite" style="margin-top:8px">Load as scenario template →</button>
+   <div class="list">${SITES.filter(x=>atlasFilter==='all'||x.t===atlasFilter).map(x=>`<button data-site="${x.k}" class="${x.k===P.site?'on':''}"><span>${x.n}</span><span>${x.c.split(',').pop().trim()}</span></button>`).join('')}</div>`;
+  $('#useSite').onclick=()=>useSite(s.k,true);
+  $$('#siteCard [data-site]').forEach(b=>b.onclick=()=>useSite(b.dataset.site,false));
+  $('#atlasTag').innerHTML=`<b class="${m?'g':'cy'}">${s.n}</b> · ${s.c}`;
+  $('#iSite').textContent=s.n;
+}
+function useSite(k,apply){
+  P.site=k;const s=SITES.find(x=>x.k===k);
+  if(apply){P.species=s.sp;const want=s.t==='mangrove'?'mangrove':'urban',p=PLOTS.find(x=>x.id===P.plot);
+    if(!p||p.eco!==want){const q=PLOTS.find(x=>x.eco===want);applyPlot(q.id);P.species=s.sp}else P.plot=(P.trees===p.stems&&P.ha===p.ha)?p.id:'custom';}
+  siteCard();if(SAP.resync)SAP.resync();
+}
+$$('#siteFilter .chip').forEach(c=>c.onclick=()=>{atlasFilter=c.dataset.f;$$('#siteFilter .chip').forEach(x=>x.setAttribute('aria-pressed',x===c));siteCard();drawAtlas()});
+{const cv=$('#atlas');const pick=e=>{const r=cv.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;let best=null,bd=14;
+  SITES.forEach(s=>{if(atlasFilter!=='all'&&s.t!==atlasFilter)return;const[x,y]=atlasXY(s.lon,s.lat,r.width,r.height),d=Math.hypot(x-mx,y-my);if(d<bd){bd=d;best=s}});return best};
+ cv.addEventListener('mousemove',e=>{const s=pick(e);atlasHover=s?s.k:null;cv.style.cursor=s?'pointer':'crosshair'});
+ cv.addEventListener('mouseleave',()=>atlasHover=null);
+ cv.addEventListener('click',e=>{const s=pick(e);if(s)useSite(s.k,false)});}
+
+/* ── ecosystem stages (qualitative, keyed to modeled cover) ── */
+const ECO={
+  mangrove:[[.05,'⚓','Roots anchor the mud','Seedlings hold soft intertidal sediment in place.'],
+    [.25,'⛰','Sediment builds up','Prop and pencil roots slow the water, so silt settles and the ground rises.'],
+    [.45,'🌊','Waves lose energy','The root maze breaks up waves before they reach the shore.'],
+    [.60,'🐟','Nursery habitat','Juvenile fish, crabs and shrimp shelter between the roots.'],
+    [.75,'🪶','Birds return','Herons, egrets and kingfishers roost and hunt in the canopy.'],
+    [.85,'🍃','Food web & clear water','Leaf litter feeds the estuary; calmer water lets sediment settle out.']],
+  urban:[[.05,'🌱','Saplings establish','Watering and protection matter most in the first years.'],
+    [.20,'⛱','Shade on pavement','Crowns start shading sidewalks and parked cars.'],
+    [.35,'🌡','Cooler streets','Shade and evaporation lower surface and felt temperature.'],
+    [.50,'🌧','Stormwater slowed','Canopies and roots intercept rain and slow runoff.'],
+    [.65,'🐝','Pollinators & birds','Street trees link parks into habitat corridors.'],
+    [.80,'🏙','Liveable blocks','Walking and resting outdoors become comfortable in summer.']]};
+function ecoStages(){const s=SPECIES[P.species];return ECO[s.blue?'mangrove':'urban']}
+function renderEco(c){
+  const st=ecoStages();let n=0;
+  $('#eco').innerHTML=st.map(([th,ic,ti,tx])=>{const on=c.cover>=th;if(on)n++;return `<div class="${on?'on':''}"><i>${ic}</i><div style="all:unset;display:block"><b>${ti}</b><span>${tx}</span><br><em>from ~${Math.round(th*100)}% canopy</em></div></div>`}).join('');
+  $('#ecoPill').textContent=`${n} / ${st.length} active`;
+  const last=st.filter(x=>c.cover>=x[0]).pop();
+  $('#narrEco').innerHTML=last?`${last[1]} <b>${last[2]}</b> — ${last[3]}`:'';
+  SAP.ecoLevel=n;
+}
+
+/* ── shot mode (for README stills / demo video): ?view=&year=&site=&plot=&clean=1 ── */
+const Q=new URLSearchParams(location.search);
+
+/* ── Asimov chat ──────────────────────────────── */
+const now=()=>new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+function say(html,me=false,cls=''){const m=document.createElement('div');m.className='msg'+(me?' me':'')+(cls?' '+cls:'');m.innerHTML=html+`<time>${now()}</time>`;$('#msgs').appendChild(m);$('#msgs').scrollTop=1e9;return m}
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function scripted(q){
+  const c=SAP.cur,s=SPECIES[P.species],t=q.toLowerCase(),cov=Math.round(c.cover*100);
+  if(/price|pump|moon|buy|invest|token|\$asimov|asimov coin/.test(t))return `I explain trees, not trades. $ASIMOV is utility-first: fees can become <b>liquidity intents</b>, tree payments and plot funding — nothing here predicts or promotes a price. Mission Control lists the on-chain facts.`;
+  if(/sequest|carbon|co2|store/.test(t))return `Trees pull CO₂ from the air and build it into wood. In this model each tree's carbon is <b>height × crown area × a species factor</b>, converted to CO₂e (×44/12), then multiplied by survivors and topped up with roots (r:s ${P.rs}). Right now: <b>${fmt(c.total)} tCO₂e</b> (${fmt(c.agb)} above ground, ${fmt(c.roots)} in roots).${s.blue?' Mangroves also bury carbon in sediment — this model leaves that out, so it is conservative.':''}`;
+  if(/mangrove|blue/.test(t))return `Mangroves grow where salt water meets land. Their prop roots trap sediment, buffer storm surge and shelter fish nurseries. In the species table, red mangrove grows fastest early (k = 0.12) and tops out near 15 m.`;
+  if(/proof|treegens|verif|real/.test(t))return `A simulated tree is a promise; <b>Treegens Proof of Tree</b> is how it becomes evidence — geo-tagged planting proof that a TreeNFT claim can reference. In this project that link is <b>not live yet</b>: the tree-fund wallet is unset and no plots are verified, so I won't show fake IDs.`;
+  if(/nvidia|omniverse|cosmos|gpu|isaac/.test(t))return `The story borrows from NVIDIA's physical-AI stack: <b>Omniverse</b> for USD digital twins and <b>Cosmos</b> for world-model video of possible futures. This laptop has no NVIDIA GPU, so those are used as <b>instruction-only</b> skills; Isaac ROS is a recorded “not now”. What you're watching runs on 8 GB with no GPU.`;
+  if(/cool|shade|heat|temp/.test(t))return `Canopy shade lowers surface and perceived temperature. The cooling proxy here is simply −3.2 °C × canopy cover → <b>${c.cool.toFixed(1)} °C</b> at ${cov}% cover. Real cooling depends on street geometry, wind and irrigation.`;
+  if(/mortal|surviv|die|dead/.test(t))return `Mortality is set to <b>${P.mort}%/yr</b>, so ${fmt(c.surv*100,1)}% of the ${fmt(P.trees)} trees survive to year ${c.y.toFixed(1)}. Try raising it in Scenario inputs and watch canopy closure slip.`;
+  if(/how|model|formula|math|work/.test(t))return `Per tree: height h = ${s.max_h}·(1−e^(−${s.k}·age)); crown = π(h·${s.cf}/2)²; biomass = h·crown·${s.carb}; carbon = biomass·0.5·0.47/1000 t. Then CO₂e = ×44/12, × survivors, + roots. Cover = 1 − e^(−trees·crown/area). Diagrams → “Growth model” draws the whole pipeline.`;
+  if(/scenario|different|climate|urban|city/.test(t))return `Switch <b>Species</b> in Scenario inputs: the mangroves become an urban street forest and the twin redraws with roads and buildings. Compare year 15: carbon vs cooling tell different stories.`;
+  if(/hello|hi|hey|who/.test(t))return `I'm Asimov, QUILL's first sub-agent — I explain regenerative, physical-world projects. Ask me about carbon, mangroves, verification or how the model works.`;
+  return `At year ${c.y.toFixed(1)} this plot has <b>${fmt(c.alive)}</b> trees, <b>${cov}%</b> canopy and <b>${fmt(c.total)} tCO₂e</b> stored. Ask about carbon, mangroves, cooling, mortality, Proof of Tree or the model itself.`;
+}
+async function ollama(q){
+  const c=SAP.cur,s=SPECIES[P.species];
+  const sys=`You are ASIMOV-QUILL, "the Positronic Scribe", QUILL's first sub-agent: a humanist, rationalist educator on regenerative and physical-world projects.
+Voice: one idea per sentence; define jargon on first use; active voice; gentle dry wit; follow Context -> Evidence -> Reasoning -> Conclusion and end with an implication, not a punchline.
+Label what is model output (fact of the simulation), inference, and speculation. No hype, no fear. Answer in <=90 words, plain text.
+Current simulation: species ${s.name}; year ${c.y.toFixed(1)} of 15; trees alive ${Math.round(c.alive)} of ${P.trees}; canopy cover ${Math.round(c.cover*100)}%; CO2e stored ${Math.round(c.total)} t (above ${Math.round(c.agb)}, roots ${Math.round(c.roots)}); plot ${P.ha} ha.
+Rules: these are illustrative averages, not site-specific predictions; never discuss token prices or investing; Treegens Proof of Tree is not linked yet; NVIDIA Omniverse/Cosmos are narrative references, not running here.`;
+  const r=await fetch('http://127.0.0.1:11434/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:$('#ollamaModel').value.trim()||'llama3.2',stream:false,messages:[{role:'system',content:sys},{role:'user',content:q}]})});
+  if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();return esc(j.message?.content||'').replace(/\n/g,'<br>');
+}
+$('#chatForm').onsubmit=async e=>{e.preventDefault();const q=$('#chatIn').value.trim();if(!q)return;$('#chatIn').value='';say(esc(q),true);
+  if($('#useOllama').checked){const m=say('<span class="mut">thinking locally…</span>');try{m.innerHTML=(await ollama(q))+`<time>${now()} · ollama</time>`;$('#ollamaStat').textContent='● connected';$('#ollamaStat').style.color='var(--g)'}catch(err){m.innerHTML=scripted(q)+`<time>${now()} · scripted (Ollama unreachable)</time>`;$('#ollamaStat').textContent='unreachable';$('#ollamaStat').style.color='var(--amber)'}}
+  else setTimeout(()=>say(scripted(q)),220);
+};
+$('#useOllama').onchange=e=>{$('#aiMode').textContent=e.target.checked?'OLLAMA · LOCAL':'SCRIPTED'};
+$('#sugg').innerHTML=['How does this sequester carbon?','Why mangroves?','What is Proof of Tree?','Where does NVIDIA fit?','How does the model work?'].map(s=>`<button>${s}</button>`).join('');
+$$('#sugg button').forEach(b=>b.onclick=()=>{$('#chatIn').value=b.textContent;$('#chatForm').requestSubmit()});
+
+/* ── mission control probe ────────────────────── */
+$('#probeBtn').onclick=async()=>{
+  const out=$('#probeOut');out.textContent='probing http://127.0.0.1:3000 …\n';
+  for(const p of ['/api/sap/health','/api/sap/policy','/api/sap/treasury/report']){
+    try{const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),3000);
+      const r=await fetch('http://127.0.0.1:3000'+p,{signal:ctl.signal});clearTimeout(to);
+      const t=await r.text();out.textContent+=`\n${p} → ${r.status}\n${t.slice(0,600)}\n`;}
+    catch(e){out.textContent+=`\n${p} → unreachable (${e.name}). Backend not running, or CORS blocks file:// — serve this page from the backend or a local static server.\n`}
+  }
+};
+
+/* ── diagrams (SVG builder) ───────────────────── */
+function diagram(host,{w,h,nodes,edges,groups=[],extra=''}){
+  const N={};nodes.forEach(n=>{n.h=n.h||54;N[n.id]=n});
+  const clip=(n,tx,ty)=>{const cx=n.x+n.w/2,cy=n.y+n.h/2,dx=tx-cx,dy=ty-cy;if(!dx&&!dy)return[cx,cy];const t=Math.min(Math.abs((n.w/2+4)/(dx||1e-9)),Math.abs((n.h/2+4)/(dy||1e-9)));return[cx+dx*t,cy+dy*t]};
+  const id=host.id;
+  let s=`<svg viewBox="0 0 ${w} ${h}" role="img" xmlns="http://www.w3.org/2000/svg"><defs>
+   ${[['g','#4dff9a'],['c','#3ef0e0'],['a','#ffc24d'],['r','#ff6b7a'],['n','#3e8f6a']].map(([k,c])=>`<marker id="${id}-${k}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="${c}"/></marker>`).join('')}</defs>`;
+  groups.forEach(g=>s+=`<g class="grp"><rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" rx="14"/><text x="${g.x+14}" y="${g.y+18}">${g.t}</text></g>`);
+  edges.forEach(e=>{const a=N[e.f],b=N[e.t];const [x1,y1]=clip(a,b.x+b.w/2,b.y+b.h/2),[x2,y2]=clip(b,a.x+a.w/2,a.y+a.h/2);
+    const mx=(x1+x2)/2,my=(y1+y2)/2,cv=e.c||0,nx=-(y2-y1),ny=x2-x1,l=Math.hypot(nx,ny)||1,qx=mx+nx/l*cv,qy=my+ny/l*cv;
+    const k=e.k||'flow',mk={flow:'g',read:'c',gate:'a',block:'r',plain:'n'}[k];
+    s+=`<g class="ed ${k}"><path d="M${x1} ${y1}Q${qx} ${qy} ${x2} ${y2}" marker-end="url(#${id}-${mk})"/>`;
+    if(e.l){const tx=(x1+2*qx+x2)/4,ty=(y1+2*qy+y2)/4,tw=e.l.length*6.3+10;s+=`<rect x="${tx-tw/2}" y="${ty-9}" width="${tw}" height="16" rx="4"/><text x="${tx}" y="${ty+3}" text-anchor="middle">${e.l}</text>`}
+    s+='</g>'});
+  nodes.forEach(n=>{s+=`<g class="nd ${n.k||''}"><rect x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" rx="10"/><text class="t" x="${n.x+12}" y="${n.y+22}">${n.t}</text>`;
+    (Array.isArray(n.s)?n.s:[n.s]).filter(Boolean).forEach((line,i)=>s+=`<text class="s" x="${n.x+12}" y="${n.y+39+i*14}">${line}</text>`);s+='</g>'});
+  host.innerHTML=s+extra+'</svg>';
+}
+function buildDiagrams(){
+  diagram($('#dgArch'),{w:1100,h:580,
+    groups:[{x:16,y:12,w:1068,h:112,t:'PUBLIC EDGE'},{x:16,y:142,w:350,h:270,t:'EDUCATION LEG · sap-canopy/'},{x:382,y:142,w:422,h:426,t:'PAYMENTS LEG · backend/ (mirror of Shaddai-3d)'},{x:820,y:142,w:264,h:270,t:'CONTRACTS LEG · sap-canopy/contracts/'},{x:820,y:426,w:264,h:142,t:'EXTERNAL'}],
+    nodes:[
+      {id:'ex',x:36,y:46,w:170,t:'Explorers',s:'browser · phone'},
+      {id:'site',x:240,y:46,w:180,t:'asimov-site/',s:'site · press · story'},
+      {id:'ctr',x:454,y:46,w:190,t:'Asimov Center',s:'twin · sim · diagrams',k:'core'},
+      {id:'ag',x:678,y:46,w:180,t:'Grok / Claude agents',s:'read AGENTS.md R1–R7',k:'ai'},
+      {id:'gh',x:892,y:46,w:176,t:'GitHub (public)',s:'shaddai-asimov-project',k:'ext'},
+      {id:'edu',x:36,y:172,w:310,t:'EduTwin · Gradio :7860',s:'deterministic growth model · offline',k:'core'},
+      {id:'tw',x:36,y:252,w:310,t:'Three.js canopy twin',s:'mangrove → urban · 15 years'},
+      {id:'ol',x:36,y:332,w:310,t:'Ollama :11434',s:'optional local narration',k:'gate'},
+      {id:'rt',x:400,y:172,w:386,t:'sap-routes.js · Express :3000',s:'14 routes · read · plan · intent — none trade',k:'core'},
+      {id:'tg',x:400,y:252,w:186,t:'treegens-service',s:'splitByPolicy 40/40/20'},
+      {id:'ts',x:600,y:252,w:186,t:'treasury-service',s:'records INTENT only'},
+      {id:'hl',x:400,y:332,w:186,t:'lib/hyperliquid',h:64,s:['reads Hyperliquid API','4-key trade gate: LOCKED']},
+      {id:'hp',x:600,y:332,w:186,t:'lib/hip1-deploy',s:'planner · supply invariant'},
+      {id:'xb',x:400,y:420,w:186,t:'x402 fee bridge',s:'ROUTING=0 · OFF',k:'gate'},
+      {id:'lg',x:600,y:420,w:186,t:'Two ledgers',s:'¢ settlements ≠ credits'},
+      {id:'st',x:490,y:500,w:210,h:50,t:'Human-reviewed settler',s:'does not exist (R2)',k:'block'},
+      {id:'apay',x:838,y:172,w:228,t:'AgentPay.sol',s:'escrow + 1% tree fund'},
+      {id:'nft',x:838,y:252,w:228,t:'TreeNFT.sol',s:'Proof-of-Tree claim'},
+      {id:'gt',x:838,y:332,w:228,t:'Gates',s:'solc 31 · forge tc 3 · 84 ✓',k:'ok'},
+      {id:'tge',x:838,y:452,w:228,h:46,t:'Treegens · Proof of Tree',s:'3 plots open · 0 verified',k:'ext'},
+      {id:'hle',x:838,y:510,w:228,h:46,t:'Hyperliquid API · Solana',s:'',k:'ext'}],
+    edges:[{f:'ex',t:'site'},{f:'ex',t:'ctr',c:-30},{f:'ag',t:'gh',k:'read'},{f:'ctr',t:'edu',k:'read',l:'same model'},{f:'ctr',t:'rt',k:'read',l:'probe /api/sap'},
+      {f:'edu',t:'tw'},{f:'tw',t:'ol',k:'gate',l:'optional'},{f:'rt',t:'tg'},{f:'rt',t:'ts'},{f:'rt',t:'hl',k:'read',c:-40},{f:'rt',t:'hp',c:40},
+      {f:'tg',t:'ts'},{f:'xb',t:'lg',k:'gate'},{f:'ts',t:'st',k:'block',c:60,l:'execute?'},
+      {f:'apay',t:'nft'},{f:'nft',t:'tge',k:'gate',c:40,l:'claim'},{f:'nft',t:'gt',k:'plain'}]});
+
+  const ag=[['NEXUS','backend · 8003'],['ZEROX','revenue · 8001'],['ORACLE','research · 8002'],['TURTLE','UI/UX · 8004'],['QUILL','writing · 8005'],['PIKADON','security · 8008']];
+  diagram($('#dgCouncil'),{w:1100,h:470,
+    nodes:[{id:'sh',x:430,y:24,w:240,h:60,t:'SHADDAI',s:'orchestrator · 8000',k:'core'},
+      ...ag.map((a,i)=>({id:a[0],x:24+i*180,y:160,w:160,t:a[0],s:a[1],k:a[0]==='QUILL'?'core':''})),
+      {id:'as',x:640,y:286,w:290,h:62,t:'ASIMOV · QUILL sub-agent #1',s:['education · robotics · plots','planned 8th in-world agent'],k:'ai'},
+      {id:'k1',x:420,y:398,w:200,t:'asimov-quill skill',s:'voice · caveats · R7'},
+      {id:'k2',x:640,y:398,w:200,t:'NVIDIA skills · 23',s:'run here, no GPU',k:'ok'},
+      {id:'k3',x:860,y:398,w:220,t:'NVIDIA skills · 25',s:'instruction-only (GPU)',k:'gate'}],
+    edges:[...ag.map(a=>({f:'sh',t:a[0],k:'plain'})),{f:'QUILL',t:'as'},{f:'as',t:'k1'},{f:'as',t:'k2'},{f:'as',t:'k3',k:'gate'},{f:'PIKADON',t:'as',k:'gate',l:'reviews vs R7',c:-30},{f:'ORACLE',t:'as',k:'read',l:'facts',c:40}]});
+
+  // donut for 40/40/20
+  const donut=(cx,cy,r)=>{let a0=-Math.PI/2,o='';[[0.4,'#4dff9a','Tree fund 40%'],[0.4,'#3ef0e0','$ASIMOV liquidity 40%'],[0.2,'#a78bfa','Platform 20%']].forEach(([f,c,l],i)=>{const a1=a0+f*Math.PI*2,x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);o+=`<path d="M${x0} ${y0}A${r} ${r} 0 ${f>.5?1:0} 1 ${x1} ${y1}" stroke="${c}" stroke-width="22" fill="none"/><rect x="${cx+r+30}" y="${cy-40+i*26}" width="12" height="12" rx="3" fill="${c}"/><text x="${cx+r+50}" y="${cy-30+i*26}" fill="#cfeee0" font-size="12">${l}</text>`;a0=a1});return o+`<text x="${cx}" y="${cy+4}" text-anchor="middle" fill="#e3fbef" font-size="13" font-weight="600">10000 bps</text>`};
+  diagram($('#dgFee'),{w:1100,h:520,
+    groups:[{x:16,y:12,w:1068,h:108,t:'REAL MONEY · CENTS'},{x:16,y:160,w:1068,h:350,t:'CLOSED-LOOP CREDITS · SHAD-CREDITS (scale 100)'}],
+    nodes:[{id:'sp',x:36,y:46,w:210,t:'Stripe / USD payment',s:'real money',k:'ext'},
+      {id:'se',x:300,y:46,w:250,t:'db.settlements',s:'integer cents — money ledger',k:'core'},
+      {id:'rp',x:610,y:46,w:290,t:'Treasury transparency report',s:'GET /api/sap/treasury/report'},
+      {id:'call',x:36,y:196,w:200,t:'x402 paid agent call',s:''},
+      {id:'gate',x:276,y:196,w:220,t:'SAP_X402_FEE_ROUTING',s:'default OFF · additive (R5)',k:'gate'},
+      {id:'fee',x:536,y:196,w:230,t:'5% fee in SHAD-Credits',s:'db.creditFeeAllocations'},
+      {id:'spl',x:806,y:196,w:260,t:'splitByPolicy()',s:'treegens-service.js · one source (R4)',k:'core'},
+      {id:'tf',x:560,y:300,w:160,t:'Tree fund',s:'4000 bps'},
+      {id:'lq',x:736,y:300,w:170,t:'$ASIMOV liquidity',s:'4000 bps'},
+      {id:'pl',x:922,y:300,w:150,t:'Platform',s:'2000 bps',k:'ai'},
+      {id:'in',x:600,y:410,w:300,t:'Settlement INTENTS',s:'destination null until wallet set'},
+      {id:'sx',x:930,y:410,w:142,t:'Settler',s:'not built (R2)',k:'block'}],
+    edges:[{f:'sp',t:'se'},{f:'se',t:'rp',k:'read'},{f:'call',t:'gate',k:'gate'},{f:'gate',t:'fee',k:'gate',l:'if =1'},{f:'fee',t:'spl'},{f:'spl',t:'tf',c:20},{f:'spl',t:'lq'},{f:'spl',t:'pl'},{f:'tf',t:'in'},{f:'lq',t:'in'},{f:'in',t:'sx',k:'block'}],
+    extra:`<line x1="16" y1="140" x2="1084" y2="140" stroke="#ff6b7a" stroke-width="2" stroke-dasharray="10 6"/><rect x="380" y="130" width="340" height="20" rx="5" fill="#2a0e13"/><text x="550" y="144" text-anchor="middle" fill="#ff9aa6" font-size="11" font-family="Consolas,monospace">R3 · CREDITS ARE NOT MONEY — nothing crosses</text>`+donut(130,390,70)});
+
+  diagram($('#dgHip'),{w:1100,h:400,
+    nodes:[{id:'rq',x:24,y:30,w:200,t:'GET /api/sap/hip1/plan',s:'name · maxSupply · genesis'},
+      {id:'su',x:256,y:30,w:230,t:'Resolve supply',s:['maxSupplyWei ⇄ genesis','= ONE number']},
+      {id:'ad',x:518,y:30,w:270,h:84,t:'Genesis address precedence',s:['?genesisAddress','› HYPERLIQUID_ACCOUNT_ADDRESS','› system addr (next idx, provisional)','› 0x…dEaD burn sink']},
+      {id:'mt',x:820,y:30,w:256,t:'getSpotMeta()',s:['3000 ms timeout','offline → warnings[], never 500']},
+      {id:'va',x:380,y:180,w:320,t:'Validator · R6 never weakened',s:'maxSupplyWei === Σ genesis',k:'core'},
+      {id:'ok',x:60,y:310,w:280,t:'200 · plan',s:'specValid ✓ supplyMatchesGenesis ✓',k:'ok'},
+      {id:'mm',x:400,y:310,w:280,t:'400 · HIP1_SUPPLY_MISMATCH',s:'both stated, different',k:'block'},
+      {id:'bs',x:740,y:310,w:280,t:'400 · HIP1_BAD_SPEC',s:'invalid name / spec',k:'block'},
+      {id:'dp',x:800,y:180,w:276,t:'Real deployment',s:['BLOCKED · 31-h Dutch auction','500 HYPE floor (~$40–43k)'],k:'block'}],
+    edges:[{f:'rq',t:'su'},{f:'su',t:'ad'},{f:'ad',t:'mt',k:'read'},{f:'mt',t:'va',k:'read'},{f:'su',t:'va'},{f:'va',t:'ok'},{f:'va',t:'mm',k:'block'},{f:'va',t:'bs',k:'block'},{f:'ok',t:'dp',k:'block',c:-80,l:'needs funds'}]});
+
+  diagram($('#dgModel'),{w:1100,h:330,
+    nodes:[{id:'sp',x:24,y:30,w:230,h:84,t:'Species params',s:['H max height · k rate','f crown · c carbon factor','(5 species, explainer table)'],k:'core'},
+      {id:'h',x:290,y:30,w:240,t:'Height',s:'h = H·(1 − e^(−k·age))'},
+      {id:'a',x:566,y:30,w:240,t:'Crown area',s:'A = π·(h·f/2)²'},
+      {id:'b',x:842,y:30,w:234,t:'Biomass proxy',s:'B = h·A·c'},
+      {id:'c',x:842,y:150,w:234,t:'Carbon / tree',s:'C = B·0.5·0.47/1000 t'},
+      {id:'co',x:566,y:150,w:240,t:'CO₂e / tree',s:'× 44/12'},
+      {id:'n',x:290,y:150,w:240,t:'Survivors',s:'N = trees·(1 − m)^year'},
+      {id:'tot',x:24,y:150,w:230,t:'Stand carbon',s:['AGB = CO₂e·N','+ roots = AGB·r:s'],h:68,k:'ok'},
+      {id:'cv',x:290,y:256,w:300,t:'Canopy cover',s:'1 − e^(−N·A / plot area)'},
+      {id:'px',x:630,y:256,w:446,t:'Labelled proxies',s:'habitat = 0.12 + 0.72·cover^0.8 · cooling = −3.2 °C × cover',k:'gate'}],
+    edges:[{f:'sp',t:'h'},{f:'h',t:'a'},{f:'a',t:'b'},{f:'b',t:'c'},{f:'c',t:'co'},{f:'co',t:'n'},{f:'n',t:'tot'},{f:'n',t:'cv'},{f:'cv',t:'px',k:'gate'}]});
+
+  diagram($('#dgNv'),{w:1100,h:380,
+    nodes:[{id:'r',x:24,y:150,w:180,t:'NVIDIA repo / tool',s:'candidate'},
+      {id:'v',x:240,y:150,w:200,t:'Write verdict row',s:'BEFORE any install',k:'gate'},
+      {id:'q1',x:476,y:60,w:270,t:'Runs on this machine?',s:'no GPU · 8 GB · Windows'},
+      {id:'q2',x:476,y:240,w:270,t:'Knowledge / instruction only?',s:'skill · prompt · reference'},
+      {id:'y1',x:800,y:24,w:276,t:'✅ Admit — executes here',s:'e.g. 23 no-GPU NVIDIA skills',k:'ok'},
+      {id:'y2',x:800,y:150,w:276,t:'✅ Admit — instruction-only',s:'e.g. 25 GPU skills, Omniverse, Cosmos',k:'ok'},
+      {id:'no',x:800,y:290,w:276,h:68,t:'❌ Reject / not now',s:['Isaac-ROS · TensorRT','nvidia-docker · container-toolkit'],k:'block'}],
+    edges:[{f:'r',t:'v'},{f:'v',t:'q1'},{f:'q1',t:'y1',l:'yes'},{f:'q1',t:'q2',k:'plain',l:'no'},{f:'q2',t:'y2',l:'yes'},{f:'q2',t:'no',k:'block',l:'no'}]});
+}
+$$('[data-jump]').forEach(a=>a.onclick=e=>{e.preventDefault();document.querySelector(a.getAttribute('href')).scrollIntoView({behavior:'smooth'})});
+
+/* ── boot ─────────────────────────────────────── */
+if(Q.get('plot'))applyPlot(Q.get('plot'));if(Q.get('site'))useSite(Q.get('site'),Q.get('apply')!=='0');if(Q.get('mort'))P.mort=+Q.get('mort');
+if(Q.get('clean')==='1')document.body.classList.add('clean');
+rebuild();bindInputs();buildDiagrams();siteCard();setYear(Q.get('year')?+Q.get('year'):0);loadLand();
+say(`Welcome, Explorer. I'm <b>Asimov</b>, your guide to this canopy twin. It projects ${fmt(P.trees)} ${SPECIES[P.species].blue?'mangroves':'trees'} on ${P.ha} ha over 15 years — press ▶ below or drag the timeline.`);
+say(`Everything you see is an <b>illustrative average, not a site-specific prediction</b>. The formulas are open — ask “how does the model work?”`,false,'impact');
+const start=Q.get('view')||(location.hash||'#immersive').slice(1);go(['immersive','sim','status','diagrams'].includes(start)?start:'immersive');
+requestAnimationFrame(tick);
+setTimeout(()=>{if(!window.__glReady){$('#loading').style.display='none';$('#glFail').style.display='grid'}},15000);
+</script>
+
+<!-- ═════════════ IMMERSIVE 3D (three.js) ═════════════ -->
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {ShaderPass} from 'three/addons/postprocessing/ShaderPass.js';
+
+const SAP=window.SAP, cv=document.getElementById('gl');
+let renderer;
+try{renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'})}
+catch(e){document.getElementById('loading').style.display='none';document.getElementById('glFail').style.display='grid';throw e}
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.25));
+renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+
+const scene=new THREE.Scene();
+const HORIZON=new THREE.Color('#cfe9ef');
+scene.fog=new THREE.Fog(HORIZON,150,470);
+const camera=new THREE.PerspectiveCamera(48,1,0.5,900);
+camera.position.set(0,40,84);
+const controls=new OrbitControls(camera,cv);
+controls.target.set(0,8,0);controls.enableDamping=true;controls.dampingFactor=0.06;
+controls.maxPolarAngle=Math.PI*0.47;controls.minDistance=25;controls.maxDistance=220;
+controls.autoRotate=true;controls.autoRotateSpeed=0.35;
+
+const R=(s=>()=>{s|=0;s=s+0x6D2B79F5|0;let t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296})(58);
+const U={time:{value:0}};
+
+/* sky dome */
+{const g=new THREE.SphereGeometry(600,32,16);const m=new THREE.ShaderMaterial({side:THREE.BackSide,depthWrite:false,fog:false,
+  uniforms:{top:{value:new THREE.Color('#6fb7ea')},mid:{value:new THREE.Color('#bfe3f5')},hor:{value:HORIZON}},
+  vertexShader:`varying vec3 vP;void main(){vP=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform vec3 top,mid,hor;varying vec3 vP;void main(){float h=vP.y;vec3 c=mix(hor,mid,smoothstep(0.,.18,h));c=mix(c,top,smoothstep(.18,.7,h));
+    float cl=.6*smoothstep(.6,.95,sin(vP.x*9.+sin(vP.z*7.)*2.)*sin(vP.z*6.+vP.x*3.)*.5+.5)*smoothstep(.04,.25,h)*(1.-smoothstep(.35,.6,h));c=mix(c,vec3(1.),cl*.55);gl_FragColor=vec4(c,1.);}`});
+ scene.add(new THREE.Mesh(g,m));}
+
+/* lights */
+scene.add(new THREE.HemisphereLight('#e6f6ff','#2f4a2a',1.15));
+const sun=new THREE.DirectionalLight('#fff3d6',2.1);sun.position.set(-60,90,40);scene.add(sun);
+const coreLight=new THREE.PointLight('#5ff6e8',60,70,1.6);coreLight.position.set(0,10,0);scene.add(coreLight);
+
+/* channels */
+const V=(x,z)=>new THREE.Vector3(x,0,z);
+const rivers=[
+  {c:new THREE.CatmullRomCurve3([V(-150,90),V(-90,58),V(-40,28),V(-14,8),V(0,0),V(16,-10),V(46,-34),V(95,-62),V(160,-96)]),w:6},
+  {c:new THREE.CatmullRomCurve3([V(-120,-80),V(-70,-48),V(-34,-18),V(-12,-4)]),w:3.6},
+  {c:new THREE.CatmullRomCurve3([V(110,70),V(64,44),V(30,20),V(10,5)]),w:3.4},
+  {c:new THREE.CatmullRomCurve3([V(-20,110),V(-14,70),V(-4,36),V(0,14)]),w:2.6}];
+const samples=[];rivers.forEach(r=>{for(let i=0;i<=220;i++){const p=r.c.getPointAt(i/220);samples.push([p.x,p.z,r.w])}});
+const LAGOON=15;
+function waterDist(x,z){let m=Math.hypot(x,z)-LAGOON;for(const [sx,sz,w] of samples){const d=Math.hypot(x-sx,z-sz)-w;if(d<m)m=d}return m}
+
+const waterMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide,
+  uniforms:{time:U.time,radial:{value:0}},
+  vertexShader:`varying vec2 vUv;varying vec3 vW;void main(){vUv=uv;vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
+  fragmentShader:`uniform float time,radial;varying vec2 vUv;varying vec3 vW;
+   void main(){float across=radial>.5?length(vUv-.5)*2.:abs(vUv.y-.5)*2.;float edge=smoothstep(.55,1.,across);
+    float flow=sin(vW.x*.9+vW.z*.6-time*1.6+sin(vW.z*.25+time*.3)*2.)*.5+.5;
+    float sp=pow(max(0.,sin(vW.x*1.3+vW.z*.7+time*1.3)*sin(vW.z*1.1-vW.x*.4-time*1.1)),24.);
+    vec3 deep=vec3(.02,.22,.26),sh=vec3(.18,.62,.58);
+    vec3 c=mix(deep,sh,edge*.6+flow*.1)+sp*.18+vec3(.2,1.,.9)*.03*flow;
+    gl_FragColor=vec4(c,.9);}`});
+function ribbon(curve,w,segs,y){const pos=[],uv=[],idx=[];for(let i=0;i<=segs;i++){const t=i/segs,p=curve.getPointAt(t),tg=curve.getTangentAt(t),n=new THREE.Vector3(-tg.z,0,tg.x).normalize(),ww=w*(.85+.25*Math.sin(t*11));
+  pos.push(p.x+n.x*ww,y,p.z+n.z*ww,p.x-n.x*ww,y,p.z-n.z*ww);uv.push(t,0,t,1);if(i<segs){const a=i*2;idx.push(a,a+1,a+2,a+1,a+3,a+2)}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
+rivers.forEach(r=>scene.add(new THREE.Mesh(ribbon(r.c,r.w,260,0.12),waterMat)));
+{const lm=waterMat.clone();lm.uniforms={time:U.time,radial:{value:1}};const l=new THREE.Mesh(new THREE.CircleGeometry(LAGOON+1,64),lm);l.rotation.x=-Math.PI/2;l.position.y=0.13;scene.add(l)}
+
+/* ground */
+{const g=new THREE.PlaneGeometry(520,520,150,150);g.rotateX(-Math.PI/2);const p=g.attributes.position,col=[];const c1=new THREE.Color('#2f5a24'),c2=new THREE.Color('#4c7a2d'),mud=new THREE.Color('#5d5a3c'),tmp=new THREE.Color();
+ for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i);const d=Math.hypot(x,z)<200?waterDist(x,z):50;const n=Math.sin(x*.13)*Math.cos(z*.11)*.5+Math.sin(x*.41+z*.37)*.25;
+  let y=d<0?-1.2:d<3?-1.2+d*.4:0.02+n*.15;if(Math.hypot(x,z)>190)y+=(Math.hypot(x,z)-190)*.08;p.setY(i,y);
+  tmp.copy(c1).lerp(c2,n*.5+.5);if(d<5)tmp.lerp(mud,1-Math.max(0,d)/5);col.push(tmp.r,tmp.g,tmp.b)}
+ g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeVertexNormals();
+ scene.add(new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95,metalness:0})))}
+/* island under core */
+{const g=new THREE.CylinderGeometry(6.5,8,1.6,24);const m=new THREE.Mesh(g,new THREE.MeshStandardMaterial({color:'#3f6b2c',roughness:1}));m.position.y=0.2;scene.add(m)}
+
+/* stone paths beside the main channel */
+{const pts=[];const c=rivers[0].c;for(let i=0;i<=60;i++){const t=i/60,p=c.getPointAt(t),tg=c.getTangentAt(t);const n=new THREE.Vector3(-tg.z,0,tg.x).normalize();if(p.length()<LAGOON+6)continue;pts.push(p.clone().addScaledVector(n,10))}
+ const segs=[];let cur=[];pts.forEach((p,i)=>{if(i&&p.distanceTo(pts[i-1])>14){segs.push(cur);cur=[]}cur.push(p)});segs.push(cur);
+ const pm=new THREE.MeshStandardMaterial({color:'#cfc6ad',roughness:.9,polygonOffset:true,polygonOffsetFactor:-2});
+ SAP._paths=[];segs.filter(s=>s.length>3).forEach(s=>{const cc=new THREE.CatmullRomCurve3(s);SAP._paths.push(cc);scene.add(new THREE.Mesh(ribbon(cc,1.1,120,0.18),pm))})}
+
+/* trees — instanced. Plot trees grow with the timeline; ring forest is mature context. */
+const trunkG=new THREE.CylinderGeometry(.14,.24,1,6);trunkG.translate(0,.5,0);
+const crownG=new THREE.IcosahedronGeometry(1,1);
+const trunkM=new THREE.MeshStandardMaterial({color:'#5a4330',roughness:1});
+const crownM=new THREE.MeshStandardMaterial({roughness:.85,flatShading:true});
+const plot=[],ring=[];
+const CLEAR=[[19,30,7]];  // glade for the featured field unit (story chapter 6)
+for(let i=0;i<4200&&plot.length<820;i++){const a=R()*Math.PI*2,r=Math.sqrt(R())*88,x=Math.cos(a)*r,z=Math.sin(a)*r;const d=waterDist(x,z);if(d<1.8||CLEAR.some(([cx,cz,cr])=>Math.hypot(x-cx,z-cz)<cr))continue;plot.push({x,z,b:R()*2.5,s:.75+R()*.55,u:R(),hue:R(),rot:R()*6})}
+// a few saplings on the island
+for(let i=0;i<10;i++){const a=i/10*Math.PI*2,r=3.5+R()*2;plot.push({x:Math.cos(a)*r,z:Math.sin(a)*r,b:0,s:.55,u:R()*.5,hue:R(),rot:R()*6,island:true})}
+for(let i=0;i<9000&&ring.length<1100;i++){const a=R()*Math.PI*2,r=92+Math.pow(R(),.7)*110,x=Math.cos(a)*r,z=Math.sin(a)*r;if(waterDist(x,z)<2)continue;ring.push({x,z,s:1+R()*1.1,hue:R(),rot:R()*6})}
+const NT=plot.length+ring.length;
+const trunks=new THREE.InstancedMesh(trunkG,trunkM,NT),crowns=new THREE.InstancedMesh(crownG,crownM,NT*2);
+trunks.instanceMatrix.setUsage(THREE.DynamicDrawUsage);crowns.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+const pal=['#2e6b2a','#3b8a33','#4c9b3a','#2a5a33','#5fa148','#3f7f3a','#6eb052'].map(c=>new THREE.Color(c));
+const M=new THREE.Matrix4(),Q=new THREE.Quaternion(),S=new THREE.Vector3(),Pv=new THREE.Vector3(),E=new THREE.Euler();
+function placeTree(i,x,z,h,cr,flat,rot){
+  M.compose(Pv.set(x,0,z),Q.setFromEuler(E.set(0,rot,0)),S.set(cr*.35+.05,h,cr*.35+.05));trunks.setMatrixAt(i,M);
+  M.compose(Pv.set(x,h+cr*.25,z),Q,S.set(cr,cr*flat,cr));crowns.setMatrixAt(i*2,M);
+  M.compose(Pv.set(x+cr*.45,h+cr*.05,z-cr*.3),Q,S.set(cr*.68,cr*flat*.8,cr*.68));crowns.setMatrixAt(i*2+1,M);
+}
+ring.forEach((t,j)=>{const i=plot.length+j;const h=3.4*t.s,cr=2.6*t.s;placeTree(i,t.x,t.z,h,cr,.8,t.rot);const c=pal[(t.hue*pal.length)|0].clone().multiplyScalar(.85);crowns.setColorAt(i*2,c);crowns.setColorAt(i*2+1,c.clone().offsetHSL(0,0,.04))});
+plot.forEach((t,i)=>{const c=pal[(t.hue*pal.length)|0];crowns.setColorAt(i*2,c);crowns.setColorAt(i*2+1,c.clone().offsetHSL(.01,0,.06))});
+scene.add(trunks,crowns);
+/* Mangrove prop roots: a cage of arched stilt roots per plot tree — the visual signature of Rhizophora.
+   Hidden for urban species. */
+const rootG=(()=>{const parts=[];for(let k=0;k<8;k++){const a=k/8*Math.PI*2+(k%2)*.2,r=.62+(k%3)*.12;
+  const c=new THREE.QuadraticBezierCurve3(new THREE.Vector3(0,.52+(k%3)*.08,0),new THREE.Vector3(Math.cos(a)*r*.62,.62,Math.sin(a)*r*.62),new THREE.Vector3(Math.cos(a)*r,-.05,Math.sin(a)*r));
+  parts.push(new THREE.TubeGeometry(c,7,.028,4))}return mergeGeometries(parts)})();
+const roots=new THREE.InstancedMesh(rootG,new THREE.MeshStandardMaterial({color:'#5b4a3a',roughness:.95}),plot.length);
+roots.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(roots);
+let lastY=-1,lastVer=-1;
+function growTrees(){
+  const sp=SAP.SPECIES[SAP.P.species],y=SAP.year,surv=Math.pow(1-SAP.P.mort/100,y),flat=sp.blue?.62:.9;
+  plot.forEach((t,i)=>{const age=Math.max(0,y-t.b)+1;const g=1-Math.exp(-sp.k*age);const alive=t.u<=surv||t.island;
+    const h=alive?(.4+3.6*g)*t.s:0.001,cr=alive?(.35+2.6*g)*t.s:0.001;placeTree(i,t.x,t.z,h,cr,flat,t.rot);
+    const rs=alive&&sp.blue?(.55+1.5*g)*t.s:0.0001;M.compose(Pv.set(t.x,0,t.z),Q.setFromEuler(E.set(0,t.rot,0)),S.set(rs,rs*(.8+h*.08),rs));roots.setMatrixAt(i,M)});
+  trunks.instanceMatrix.needsUpdate=true;crowns.instanceMatrix.needsUpdate=true;roots.instanceMatrix.needsUpdate=true;if(crowns.instanceColor)crowns.instanceColor.needsUpdate=true;
+}
+growTrees();
+
+/* distant city */
+{const mat=new THREE.MeshStandardMaterial({color:'#c9dde6',roughness:.5,metalness:.3}),acc=new THREE.MeshStandardMaterial({color:'#e8f3f7',roughness:.4,metalness:.4});
+ for(let i=0;i<46;i++){const a=-Math.PI*.95+R()*Math.PI*.9,r=330+R()*120,x=Math.cos(a)*r,z=Math.sin(a)*r,h=18+Math.pow(R(),2.4)*95,w=3+R()*6;
+  const b=new THREE.Mesh(new THREE.CylinderGeometry(w*.7,w,h,8),mat);b.position.set(x,h/2,z);scene.add(b);
+  if(R()<.55){const s=new THREE.Mesh(new THREE.ConeGeometry(w*.5,h*.45,8),acc);s.position.set(x,h+h*.22,z);scene.add(s)}
+  if(R()<.35){const d=new THREE.Mesh(new THREE.CylinderGeometry(w*1.9,w*1.6,1.2,20),acc);d.position.set(x,h*.82,z);scene.add(d)}}}
+
+/* holographic core */
+const holoVS=`varying vec2 vUv;varying vec3 vN;varying vec3 vV;void main(){vUv=uv;vN=normalize(normalMatrix*normal);vec4 mv=modelViewMatrix*vec4(position,1.);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}`;
+function holoMat(color,str=1){return new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide,toneMapped:false,
+  uniforms:{time:U.time,col:{value:new THREE.Color(color)},str:{value:str}},vertexShader:holoVS,
+  fragmentShader:`uniform float time,str;uniform vec3 col;varying vec2 vUv;varying vec3 vN;varying vec3 vV;
+   void main(){float gx=smoothstep(.96,1.,abs(fract(vUv.x*48.)-.5)*2.),gy=smoothstep(.93,1.,abs(fract(vUv.y*14.)-.5)*2.);
+    float scan=smoothstep(.0,.02,fract(vUv.y-time*.18))*(1.-smoothstep(.02,.06,fract(vUv.y-time*.18)));
+    float dots=step(.985,fract(sin(dot(floor(vUv*vec2(96.,40.)),vec2(12.9898,78.233)))*43758.5453+time*.05));
+    float fr=pow(1.-abs(dot(vN,vV)),2.2);
+    float a=(gx*.5+gy*.45+scan*1.4+dots*.9+fr*.9+.06)*str;gl_FragColor=vec4(col*a*1.6,a);}`})}
+const core=new THREE.Group();core.position.set(0,1,0);scene.add(core);
+{const c1=new THREE.Mesh(new THREE.CylinderGeometry(7,7,11,64,1,true),holoMat('#46f5e4',1));c1.position.y=10;core.add(c1);
+ const c2=new THREE.Mesh(new THREE.CylinderGeometry(5.2,5.2,10,48,1,true),holoMat('#3affb0',.6));c2.position.y=10;core.add(c2);
+ const ringM=new THREE.MeshStandardMaterial({color:'#bff',emissive:'#36e9dc',emissiveIntensity:2.2,transparent:true,opacity:.55,toneMapped:false,metalness:.2,roughness:.3});
+ [[4.4,8.4,1.4],[15.6,8.6,1.6]].forEach(([y,r,h])=>{const d=new THREE.Mesh(new THREE.CylinderGeometry(r,r*.94,h,64,1,true),ringM);d.position.y=y;core.add(d);
+   const cap=new THREE.Mesh(new THREE.RingGeometry(r*.55,r,64),holoMat('#5ff',.7));cap.rotation.x=-Math.PI/2;cap.position.y=y+(y>10?h/2:-h/2);core.add(cap)});
+ const base=new THREE.Mesh(new THREE.CylinderGeometry(9.5,10,.8,64,1,true),ringM);base.position.y=2.6;core.add(base);
+ const orb=new THREE.Mesh(new THREE.SphereGeometry(1.25,32,16),new THREE.MeshBasicMaterial({color:new THREE.Color(2.2,6,5.6),toneMapped:false}));orb.position.y=10;core.add(orb);core.userData.orb=orb;
+ const rings=new THREE.Group();rings.position.y=10;[1.9,2.7,3.5].forEach((r,i)=>{const t=new THREE.Mesh(new THREE.TorusGeometry(r,.05,8,96),new THREE.MeshBasicMaterial({color:new THREE.Color(.6,3,2.8),toneMapped:false}));t.rotation.x=Math.PI/2;t.userData.sp=(i%2?-1:1)*(0.4+i*.25);rings.add(t)});core.add(rings);core.userData.rings=rings;
+ const beam=new THREE.Mesh(new THREE.ConeGeometry(6,9,48,1,true),holoMat('#3fe',.35));beam.position.y=-1.6;beam.rotation.x=Math.PI;core.add(beam);
+ // orbiting motes
+ const n=260,pg=new THREE.BufferGeometry(),pp=new Float32Array(n*3);for(let i=0;i<n;i++){const a=R()*6.28,r=7.5+R()*2.5;pp.set([Math.cos(a)*r,4+R()*13,Math.sin(a)*r],i*3)}
+ pg.setAttribute('position',new THREE.BufferAttribute(pp,3));const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:new THREE.Color(1,3.5,3.2),size:.28,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false}));core.add(pts);core.userData.motes=pts;}
+
+/* holo panels (canvas textures driven by the live model) */
+function mkPanel(w,h){const c=document.createElement('canvas');c.width=640;c.height=400;const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=4;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshBasicMaterial({map:tex,transparent:true,side:THREE.DoubleSide,depthWrite:false,toneMapped:false}));return {m,c,g:c.getContext('2d'),tex}}
+const panels=[
+  {pos:[-33,24,2],w:19,h:11.9,draw:pCarbon},{pos:[-37,11,24],w:15,h:9.4,draw:pGlobe},
+  {pos:[33,24,0],w:18,h:11.25,draw:pMesh},{pos:[37,11,22],w:16,h:10,draw:pCanopy}];
+const holo=new THREE.Group();scene.add(holo);
+panels.forEach(p=>{Object.assign(p,mkPanel(p.w,p.h));p.m.position.set(...p.pos);holo.add(p.m)});
+function frame(g,title,sub){const W=640,H=400;g.clearRect(0,0,W,H);const bg=g.createLinearGradient(0,0,W,H);bg.addColorStop(0,'rgba(8,70,70,.55)');bg.addColorStop(1,'rgba(4,40,44,.42)');g.fillStyle=bg;g.fillRect(6,6,W-12,H-12);
+  g.strokeStyle='rgba(120,255,240,.9)';g.lineWidth=3;g.strokeRect(6,6,W-12,H-12);g.lineWidth=7;[[6,6,1,1],[W-6,6,-1,1],[6,H-6,1,-1],[W-6,H-6,-1,-1]].forEach(([x,y,a,b])=>{g.beginPath();g.moveTo(x+a*36,y);g.lineTo(x,y);g.lineTo(x,y+b*36);g.stroke()});
+  g.fillStyle='#bafff4';g.font='600 22px Segoe UI, sans-serif';g.fillText(title,26,42);g.fillStyle='rgba(170,255,240,.7)';g.font='15px Consolas, monospace';g.fillText(sub,26,64);
+  g.strokeStyle='rgba(120,255,240,.12)';g.lineWidth=1;for(let x=26;x<W-20;x+=30){g.beginPath();g.moveTo(x,80);g.lineTo(x,H-26);g.stroke()}}
+function pCarbon(g,t){const c=SAP.cur,d=SAP.series;frame(g,'CARBON ACCUMULATION',`${Math.round(c.total).toLocaleString()} tCO2e · year ${c.y.toFixed(1)}`);
+  let m=0;d.forEach(p=>m=Math.max(m,p.total));m=m||1;const X=y=>30+y/15*580,Y=v=>370-v/m*260;
+  for(let k=0;k<5;k++){g.strokeStyle=`rgba(120,255,${200-k*20},${.25+k*.08})`;g.lineWidth=1.5;g.beginPath();for(let x=0;x<=580;x+=6){const yy=300-k*24+Math.sin(x*.02+t*.8+k)*14+Math.sin(x*.05-t*.5)*7;x?g.lineTo(30+x,yy):g.moveTo(30,yy)}g.stroke()}
+  g.strokeStyle='#5dffb0';g.lineWidth=4;g.shadowColor='#5dffb0';g.shadowBlur=14;g.beginPath();d.forEach((p,i)=>{if(p.y>c.y)return;i?g.lineTo(X(p.y),Y(p.total)):g.moveTo(X(p.y),Y(p.total))});g.stroke();g.shadowBlur=0;
+  g.fillStyle='#fff';g.beginPath();g.arc(X(c.y),Y(c.total),7,0,7);g.fill();}
+// Orthographic globe of real coastlines (world-atlas land dots) swinging toward the selected site
+let gLon=0,gLat=10;
+function pGlobe(g,t){const site=SAP.SITES.find(s=>s.k===SAP.P.site)||SAP.SITES[0];frame(g,'BIOSPHERE · REAL COASTLINES',site.n+' · '+site.c);const cx=230,cy=238,r=138,D=Math.PI/180;
+  const dl=((site.lon-gLon+540)%360)-180;gLon+=dl*.04;gLat+=(site.lat*.6-gLat)*.04;const l0=gLon*D,p0=gLat*D;
+  const gr=g.createRadialGradient(cx-40,cy-50,10,cx,cy,r);gr.addColorStop(0,'rgba(40,140,170,.65)');gr.addColorStop(1,'rgba(4,40,60,.55)');g.fillStyle=gr;g.beginPath();g.arc(cx,cy,r,0,7);g.fill();
+  const proj=(lo,la)=>{const L=lo*D-l0,A=la*D,c=Math.sin(p0)*Math.sin(A)+Math.cos(p0)*Math.cos(A)*Math.cos(L);return[cx+r*Math.cos(A)*Math.sin(L),cy-r*(Math.cos(p0)*Math.sin(A)-Math.sin(p0)*Math.cos(A)*Math.cos(L)),c]};
+  g.strokeStyle='rgba(160,255,240,.18)';g.lineWidth=1;for(let la=-60;la<=60;la+=30){g.beginPath();let pen=false;for(let lo=-180;lo<=180;lo+=6){const[x,y,c]=proj(lo,la);if(c>0){pen?g.lineTo(x,y):g.moveTo(x,y);pen=true}else pen=false}g.stroke()}
+  const dots=SAP.landDots;
+  if(dots){for(const[lo,la]of dots){const[x,y,c]=proj(lo,la);if(c<=0)continue;g.fillStyle=`rgba(110,255,170,${.25+c*.7})`;const s=1.2+c*1.8;g.fillRect(x-s/2,y-s/2,s,s)}}
+  else{g.fillStyle='rgba(170,255,240,.6)';g.font='14px Consolas, monospace';g.fillText('coastlines loading…',cx-70,cy)}
+  SAP.SITES.forEach(s=>{const[x,y,c]=proj(s.lon,s.lat);if(c<=0)return;const sel=s===site,col=s.t==='mangrove'?'#7dffb5':'#7ff6ff';g.fillStyle=col;g.beginPath();g.arc(x,y,sel?7:3.5,0,7);g.fill();
+    if(sel){const k=(t*.9)%1;g.strokeStyle=col;g.globalAlpha=1-k;g.lineWidth=2;g.beginPath();g.arc(x,y,8+k*26,0,7);g.stroke();g.globalAlpha=1}});
+  g.strokeStyle='#7ffff0';g.lineWidth=2;g.beginPath();g.arc(cx,cy,r+9,t%6.28,t%6.28+1.6);g.stroke();
+  g.fillStyle='#eafff6';g.font='600 20px Segoe UI, sans-serif';g.fillText(site.n.length>16?site.n.slice(0,15)+'…':site.n,400,150);g.font='14px Consolas, monospace';g.fillStyle='rgba(170,255,240,.8)';
+  g.fillText(`${Math.abs(site.lat).toFixed(1)}°${site.lat>=0?'N':'S'}  ${Math.abs(site.lon).toFixed(1)}°${site.lon>=0?'E':'W'}`,400,176);
+  g.fillStyle=site.t==='mangrove'?'#7dffb5':'#7ff6ff';g.fillText(site.t==='mangrove'?'MANGROVE COAST':'URBAN FOREST',400,204);
+  g.fillStyle='rgba(255,210,122,.9)';g.font='12px Consolas, monospace';g.fillText('template, not a forecast',400,360);}
+function pMesh(g,t){frame(g,'AGENT MESH','SHADDAI council → QUILL → Asimov');const nodes=[['SHADDAI',320,150],['NEXUS',140,110],['ZEROX',500,110],['ORACLE',110,250],['TURTLE',530,250],['PIKADON',220,340],['QUILL',420,330],['ASIMOV',560,360]];
+  const E=[[0,1],[0,2],[0,3],[0,4],[0,5],[0,6],[6,7],[5,7],[3,7]];E.forEach(([a,b],i)=>{const A=nodes[a],B=nodes[b];g.strokeStyle='rgba(120,255,230,.45)';g.lineWidth=2;g.beginPath();g.moveTo(A[1],A[2]);g.lineTo(B[1],B[2]);g.stroke();
+   const k=(t*.5+i*.17)%1;g.fillStyle='#d8fff6';g.beginPath();g.arc(A[1]+(B[1]-A[1])*k,A[2]+(B[2]-A[2])*k,4,0,7);g.fill()});
+  nodes.forEach(([n,x,y],i)=>{const hot=n==='ASIMOV'||n==='SHADDAI';g.fillStyle=hot?'rgba(90,255,170,.95)':'rgba(70,220,230,.85)';g.beginPath();g.arc(x,y,hot?13:9,0,7);g.fill();g.fillStyle='#e8fff8';g.font=(hot?'600 ':'')+'16px Consolas, monospace';g.fillText(n,x+16,y+5)});}
+function pCanopy(g,t){const c=SAP.cur;frame(g,'CANOPY · PROOF OF TREE','plots: not linked yet');const cx=200,cy=240,r=110,v=c.cover;
+  g.lineWidth=22;g.strokeStyle='rgba(120,255,200,.15)';g.beginPath();g.arc(cx,cy,r,0,7);g.stroke();g.strokeStyle='#5dffb0';g.shadowColor='#5dffb0';g.shadowBlur=14;g.beginPath();g.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+v*Math.PI*2);g.stroke();g.shadowBlur=0;
+  g.fillStyle='#eafff6';g.font='600 52px Segoe UI, sans-serif';g.textAlign='center';g.fillText(Math.round(v*100)+'%',cx,cy+12);g.font='15px Consolas, monospace';g.fillStyle='rgba(170,255,240,.8)';g.fillText('canopy cover',cx,cy+38);g.textAlign='left';
+  [['trees alive',Math.round(c.alive).toLocaleString()],['height',c.h.toFixed(1)+' m'],['habitat',c.bio.toFixed(2)],['PoT plots','0 verified']].forEach(([k,val],i)=>{g.fillStyle='rgba(170,255,240,.7)';g.font='15px Consolas, monospace';g.fillText(k,370,150+i*52);g.fillStyle=i===3?'#ffd27a':'#eafff6';g.font='600 24px Consolas, monospace';g.fillText(val,370,176+i*52)});}
+
+/* data streams core → panels and core → plot markers */
+// one material per stream so each pulse has its own phase (in-sync pulses read as a ladder)
+const streamBase=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false,uniforms:{time:U.time,off:{value:0}},
+  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform float time,off;varying vec2 vUv;void main(){float p=fract(vUv.x*2.-time*.45+off);float pulse=smoothstep(.0,.06,p)*(1.-smoothstep(.06,.22,p));float a=.12+pulse*1.3;gl_FragColor=vec4(vec3(.35,1.5,1.35)*a,a*.8);}`});
+const streamMatFn=()=>{const m=streamBase.clone();m.uniforms={time:U.time,off:{value:R()}};return m};
+const streamMat={get m(){return streamMatFn()}};
+const streams=new THREE.Group();scene.add(streams);
+panels.forEach(p=>{const tgt=new THREE.Vector3(...p.pos);for(let k=0;k<7;k++){const ang=Math.atan2(tgt.z,tgt.x)+(k-3)*.07;const a=new THREE.Vector3(Math.cos(ang)*7,6+k*1.3,Math.sin(ang)*7);
+  const b=tgt.clone().add(new THREE.Vector3(-Math.sign(tgt.x)*p.w*.5,(k-3)*1.3,0));const m1=a.clone().lerp(b,.33).add(new THREE.Vector3(0,-6+k,0)),m2=a.clone().lerp(b,.7).add(new THREE.Vector3(0,3-k*.4,0));
+  streams.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CubicBezierCurve3(a,m1,m2,b),60,.07,5),streamMat.m))}});
+
+/* lamps, plot markers, pavilions */
+const markers=new THREE.Group(),bots=new THREE.Group();scene.add(markers,bots);
+function glowTex(inner,outer){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');const gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,inner);gr.addColorStop(.35,outer);gr.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+const lampTex=glowTex('rgba(255,250,230,1)','rgba(160,255,240,.35)');
+const poleM=new THREE.MeshStandardMaterial({color:'#d9e2e4',metalness:.6,roughness:.35});
+function treeIcon(){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');g.fillStyle='rgba(20,90,50,.75)';g.beginPath();g.arc(64,64,58,0,7);g.fill();g.strokeStyle='#8dffb8';g.lineWidth=6;g.stroke();
+  g.strokeStyle='#d9ffe8';g.lineWidth=5;g.beginPath();g.moveTo(64,100);g.lineTo(64,56);g.moveTo(64,74);g.lineTo(46,60);g.moveTo(64,66);g.lineTo(82,52);g.stroke();g.fillStyle='#b8ffd2';[[64,42,18],[44,52,12],[84,46,12]].forEach(([x,y,r])=>{g.beginPath();g.arc(x,y,r,0,7);g.fill()});const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t}
+const icoTex=treeIcon();
+const mkPos=[];
+for(let i=0;i<10;i++){const a=i/10*Math.PI*2+.3,r=26+(i%3)*14;const x=Math.cos(a)*r,z=Math.sin(a)*r;if(waterDist(x,z)<2)continue;
+  const pole=new THREE.Mesh(new THREE.CylinderGeometry(.07,.1,3.4,6),poleM);pole.position.set(x,1.7,z);scene.add(pole);
+  const orb=new THREE.Mesh(new THREE.SphereGeometry(.45,16,10),new THREE.MeshBasicMaterial({color:new THREE.Color(2.2,2.6,2.4),toneMapped:false}));orb.position.set(x,3.6,z);scene.add(orb);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:lampTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));sp.scale.setScalar(4);sp.position.copy(orb.position);markers.add(sp)}
+for(let i=0;i<7;i++){const a=i/7*Math.PI*2+1.1,r=34+(i%2)*22;let x=Math.cos(a)*r,z=Math.sin(a)*r;if(waterDist(x,z)<3){x*=1.15;z*=1.15}
+  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:icoTex,transparent:true,depthWrite:false,toneMapped:false}));s.scale.setScalar(3.4);s.position.set(x,5.5,z);s.userData.y=5.5;s.userData.ph=i;markers.add(s);mkPos.push(s.position);
+  const st=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,4,5),poleM);st.position.set(x,2,z);markers.add(st)}
+// streams to markers
+mkPos.forEach(p=>{const a=new THREE.Vector3(0,4,0),b=p.clone(),m=a.clone().lerp(b,.5).setY(1.2);streams.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(a,m,b),40,.05,4),streamMat.m))});
+{const roofM=new THREE.MeshStandardMaterial({color:'#8d9aa1',metalness:.7,roughness:.3,side:THREE.DoubleSide});
+ [[-30,-22,.4],[36,30,2.2],[-48,40,4.1],[58,-12,1]].forEach(([x,z,r])=>{if(waterDist(x,z)<4)return;const g=new THREE.Group();const roof=new THREE.Mesh(new THREE.SphereGeometry(5,28,8,0,Math.PI*2,0,.55),roofM);roof.scale.set(1,.35,.75);roof.position.y=2.6;g.add(roof);
+  [[-3,-2],[3,-2],[-3,2],[3,2]].forEach(([a,b])=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,3.4,6),poleM);p.position.set(a,1.4,b*.7);g.add(p)});g.position.set(x,0,z);g.rotation.y=r;scene.add(g)})}
+
+/* field robots + rover (illustrative physical-AI agents) */
+/* Nexus R5 — the original pearl-white / green-visor unit from the ASIMOV series, ported from
+   robot-teardown/src/unit.js (lofted superellipse armour shells, real joint hierarchy, not boxes).
+   Here each link's parts are merged per finish so one robot is ~30 draw calls instead of ~100. */
+const white=new THREE.MeshPhysicalMaterial({color:'#eef1f2',roughness:.32,metalness:.08,clearcoat:.6,clearcoatRoughness:.25}),
+      dark=new THREE.MeshStandardMaterial({color:'#15191b',roughness:.45,metalness:.5}),
+      steel=new THREE.MeshStandardMaterial({color:'#8d979d',roughness:.3,metalness:.85}),
+      glow=new THREE.MeshBasicMaterial({color:new THREE.Color(.7,3.4,1.7),toneMapped:false});
+const R5MAT={white,black:dark,steel,glow};
+const ringSE=(a,rx,rz,n=2.5)=>{const c=Math.cos(a),s=Math.sin(a);return[Math.sign(c)*Math.abs(c)**(2/n)*rx,Math.sign(s)*Math.abs(s)**(2/n)*rz]};
+const cat=(p0,p1,p2,p3,t)=>.5*(2*p1+(p2-p0)*t+(2*p0-5*p1+4*p2-p3)*t*t+(3*p1-p0-3*p2+p3)*t*t*t);
+function smoothS(secs,steps){const N=secs.map(s=>[s[0],s[1],s[2],s[3]||0,s[4]||0]),o=[];for(let i=0;i<N.length-1;i++){const a=N[Math.max(i-1,0)],b=N[i],c=N[i+1],d=N[Math.min(i+2,N.length-1)];for(let k=0;k<steps;k++)o.push(b.map((_,m)=>cat(a[m],b[m],c[m],d[m],k/steps)))}o.push(N[N.length-1]);return o.map(s=>[s[0],Math.max(s[1],5e-4),Math.max(s[2],5e-4),s[3],s[4]])}
+function loft(secs,{a0=-Math.PI,a1=Math.PI,n=2.5,seg=20,steps=3}={}){const S=smoothS(secs,steps),pos=[],uv=[],idx=[],W=seg+1;
+  S.forEach(([y,rx,rz,cx,cz],i)=>{for(let j=0;j<=seg;j++){const[x,z]=ringSE(a0+(a1-a0)*j/seg,rx,rz,n);pos.push(x+cx,y,z+cz);uv.push(j/seg,i/(S.length-1))}});
+  for(let i=0;i<S.length-1;i++)for(let j=0;j<seg;j++){const a=i*W+j,b=a+W;idx.push(a,b,a+1,a+1,b,b+1)}
+  if(a1-a0>6.28)for(const[r,f]of[[0,1],[S.length-1,0]]){const c=pos.length/3,[y,,,cx,cz]=S[r];pos.push(cx,y,cz);uv.push(.5,r?1:0);for(let j=0;j<seg;j++){const a=r*W+j;f?idx.push(c,a,a+1):idx.push(c,a+1,a)}}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.setIndex(idx);g.computeVertexNormals();return g}
+const secAt=(secs,y)=>{const S=[...secs].map(a=>[a[0],a[1],a[2],a[3]||0,a[4]||0]).sort((a,b)=>a[0]-b[0]);for(let i=0;i<S.length-1;i++)if(y<=S[i+1][0]){const t=Math.max(0,(y-S[i][0])/(S[i+1][0]-S[i][0]));return S[i].map((v,m)=>v+(S[i+1][m]-v)*t)}return S[S.length-1]};
+function plate(secs,y0,y1,a0,a1,{lift=.0035,n=2.5,seg=8}={}){const at=(y,d)=>{const[,rx,rz,cx,cz]=secAt(secs,y);return[y,rx+d,rz+d,cx,cz]};const e=Math.min(.005,(y1-y0)*.2);return loft([at(y0,0),at(y0+e,lift),at((y0+y1)/2,lift),at(y1-e,lift),at(y1,0)],{a0,a1,n,seg,steps:2})}
+const scl=(secs,f)=>secs.map(([y,rx,rz,cx=0,cz=0])=>[y,rx*f,rz*f,cx,cz]);
+const HALF=Math.PI/2,AX=[HALF,0,0];
+let R5_PROTO=null;
+function buildR5Proto(){
+  // link -> finish -> [geometries]; baked transforms, merged once, then shared by every clone
+  const links={},order=[];
+  const L=(name,parent,pos)=>{links[name]={parent,pos,parts:{}};order.push(name);return name};
+  const P=(link,finish,geo,pos=[0,0,0],rot)=>{geo=geo.index?geo:geo;if(geo.attributes.uv===undefined)return;if(rot)geo.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(...rot)));geo.translate(...pos);(links[link].parts[finish]=links[link].parts[finish]||[]).push(geo)};
+  const cyl=(r,h,s=16)=>new THREE.CylinderGeometry(r,r,h,s);
+  const shell=(link,secs,o={})=>{P(link,'black',loft(scl(secs,.8),{seg:12,steps:2}));P(link,'white',loft(secs,{a0:-HALF,a1:HALF,...o}));P(link,'white',loft(secs,{a0:HALF,a1:HALF*3,...o}));
+    const ys=secs.map(q=>q[0]),lo=Math.min(...ys),hi=Math.max(...ys),Y=f=>lo+(hi-lo)*f;
+    for(const s of[-1,1])P(link,'glow',plate(secs,Y(.24),Y(.8),s>0?.66:-.68,s>0?.68:-.66,{lift:.0026,seg:2}));
+    P(link,'white',plate(secs,Y(.2),Y(.84),-.56,.56));[.4,.55].forEach(f=>P(link,'black',plate(secs,Y(f),Y(f+.045),Math.PI-.34,Math.PI+.34,{lift:.0052,seg:4})))};
+  L('pelvis',null,[0,.72,0]);
+  shell('pelvis',[[-.075,.05,.06],[-.05,.078,.115],[0,.092,.145],[.04,.09,.14],[.065,.082,.125]]);
+  P('pelvis','glow',loft([[.018,.0925,.145],[.026,.0925,.145]],{a0:-.55,a1:.55,seg:8,steps:1}));
+  L('torso','pelvis',[0,.085,0]);
+  P('torso','black',loft([[-.02,.05,.075],[.15,.058,.09],[.3,.07,.12]],{seg:12,steps:2}));
+  [[0,.074,.112],[.042,.072,.108],[.084,.074,.112]].forEach(([y,rx,rz])=>P('torso','white',loft([[y,rx-.004,rz-.004],[y+.012,rx,rz],[y+.026,rx,rz],[y+.036,rx-.004,rz-.004]],{steps:2})));
+  const chest=[[.125,.082,.125],[.17,.1,.16],[.235,.112,.178],[.3,.104,.165],[.345,.078,.115],[.368,.05,.068]];
+  P('torso','white',loft(chest,{a0:-HALF,a1:HALF,seg:24}));P('torso','white',loft(chest,{a0:HALF,a1:HALF*3,seg:24}));
+  P('torso','glow',loft([[.232,.1132,.18],[.24,.1132,.18]],{a0:-.42,a1:.42,seg:8,steps:1}));
+  P('torso','black',cyl(.04,.03),[0,.365,0]);P('torso','white',plate(chest,.2,.33,-.62,.62,{seg:10}));
+  L('head','torso',[0,.37,0]);
+  const helm=[[.052,.03,.03],[.07,.07,.066],[.11,.092,.084],[.155,.094,.086],[.19,.078,.072],[.215,.045,.042],[.226,.004,.004]];
+  P('head','steel',cyl(.024,.05),[0,.03,0]);P('head','black',loft(scl(helm,.95),{n:2.2,seg:14,steps:2}));
+  P('head','white',loft(helm,{a0:-HALF,a1:HALF,n:2.2,seg:24}));P('head','white',loft(helm,{a0:HALF,a1:HALF*3,n:2.2,seg:24}));
+  P('head','white',plate(helm,.17,.222,Math.PI-.9,Math.PI+.9,{n:2.2,seg:10}));
+  P('head','black',loft([[.112,.0935,.0855],[.116,.0962,.0882],[.158,.0965,.0885],[.162,.0935,.0855]],{a0:-1.3,a1:1.3,n:2.2,seg:20,steps:2}));
+  P('head','glow',loft([[.124,.0975,.0895],[.15,.0975,.0895]],{a0:-1.12,a1:1.12,n:2.2,seg:20,steps:1}));
+  for(const s of[-1,1]){P('head','white',cyl(.028,.014),[-.006,.137,s*.09],AX);P('head','glow',cyl(.011,.016),[-.006,.137,s*.091],AX)}
+  for(const[s,side]of[[-1,'l'],[1,'r']]){
+    L(side+'Sh','torso',[0,.285,s*.195]);
+    P(side+'Sh','steel',cyl(.042,.06),[0,0,s*.018],AX);
+    P(side+'Sh','white',loft([[-.05,.05,.05,0,s*.03],[-.02,.078,.07,0,s*.036],[.025,.08,.072,0,s*.036],[.058,.055,.052,0,s*.03],[.072,.004,.004,0,s*.028]]));
+    shell(side+'Sh',[[-.205,.036,.036,0,s*.036],[-.17,.05,.05,0,s*.036],[-.1,.054,.052,0,s*.036],[-.055,.046,.044,0,s*.036]]);
+    L(side+'El',side+'Sh',[0,-.225,s*.036]);
+    P(side+'El','black',cyl(.034,.07),[0,0,0],AX);
+    shell(side+'El',[[-.19,.034,.034],[-.14,.05,.048],[-.07,.053,.05],[-.025,.04,.04]]);
+    P(side+'El','black',loft([[-.27,.018,.02],[-.245,.034,.024],[-.21,.034,.024],[-.19,.024,.022]],{seg:12,steps:2}));
+    L(side+'Hip','pelvis',[0,-.05,s*.08]);
+    P(side+'Hip','steel',cyl(.04,.06),[0,-.015,s*.012],AX);
+    shell(side+'Hip',[[-.255,.05,.052],[-.2,.062,.06],[-.11,.07,.066],[-.05,.062,.058]]);
+    L(side+'Kn',side+'Hip',[0,-.275,0]);
+    P(side+'Kn','black',cyl(.04,.085),[0,0,0],AX);
+    P(side+'Kn','white',loft([[-.04,.012,.03,.04],[-.01,.022,.044,.042],[.03,.02,.04,.04],[.05,.008,.025,.036]],{seg:12,steps:2}));
+    shell(side+'Kn',[[-.3,.05,.05],[-.25,.06,.056],[-.17,.056,.052],[-.09,.056,.052],[-.04,.046,.046]]);
+    L(side+'An',side+'Kn',[0,-.32,0]);
+    P(side+'An','steel',cyl(.026,.055),[0,0,0],AX);
+    P(side+'An','white',loft([[-.082,.128,.058,.04],[-.06,.125,.058,.04],[-.035,.095,.05,.022],[-.008,.052,.038,0],[.012,.03,.03,0]],{n:2.8,steps:3}));
+    P(side+'An','black',loft([[-.094,.126,.056,.04],[-.081,.13,.06,.04]],{n:2.8,steps:1}));
+  }
+  for(const k of order){const l=links[k];l.merged={};for(const f in l.parts){l.merged[f]=mergeGeometries(l.parts[f].map(g=>g.toNonIndexed()),false)}}
+  return {links,order};
+}
+function makeR5(){
+  R5_PROTO=R5_PROTO||buildR5Proto();
+  const holder=new THREE.Group(),root=new THREE.Group();root.rotation.y=-HALF;holder.add(root);  // model faces +x; lookAt faces +z
+  const J={};
+  for(const k of R5_PROTO.order){const l=R5_PROTO.links[k],g=new THREE.Group();g.position.fromArray(l.pos);(l.parent?J[l.parent]:root).add(g);J[k]=g;
+    for(const f in l.merged)g.add(new THREE.Mesh(l.merged[f],R5MAT[f]))}
+  holder.userData.J=J;return holder;
+}
+const walkers=[];
+(SAP._paths||[]).forEach((cc,i)=>{for(let k=0;k<2;k++){const r=makeR5();r.scale.setScalar(2.1);bots.add(r);walkers.push({o:r,c:cc,t:R(),sp:(.006+R()*.006)*(k?1:-1),ph:R()*6})}});
+// featured unit in the glade, scanning the canopy
+{const r=makeR5();r.scale.setScalar(2.3);r.position.set(19,0,30);r.lookAt(30,0,44);bots.add(r);walkers.push({o:r,idle:true,ph:1})}
+// one unit stands on the island beside the core, scanning — "Asimov" on duty
+{const r=makeR5();r.scale.setScalar(1.7);r.position.set(4.6,1,3.2);r.lookAt(0,1,0);bots.add(r);walkers.push({o:r,idle:true,ph:0})}
+{const rv=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(2.2,.8,1.5),white);body.position.y=.95;rv.add(body);const top=new THREE.Mesh(new THREE.BoxGeometry(1.6,.25,1.2),dark);top.position.y=1.45;rv.add(top);
+ [[-.8,.7],[.8,.7],[-.8,-.7],[.8,-.7]].forEach(([x,z])=>{const w=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.35,16),dark);w.rotation.x=Math.PI/2;w.position.set(x,.45,z*1.05);rv.add(w)});
+ const mast=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,1.2,6),white);mast.position.set(.5,2.1,0);rv.add(mast);const sens=new THREE.Mesh(new THREE.CylinderGeometry(.22,.22,.3,14),dark);sens.position.set(.5,2.8,0);rv.add(sens);const led=new THREE.Mesh(new THREE.TorusGeometry(.23,.04,6,20),glow);led.rotation.x=Math.PI/2;led.position.set(.5,2.8,0);rv.add(led);
+ rv.scale.setScalar(1.3);bots.add(rv);const loop=new THREE.CatmullRomCurve3([V(24,-26),V(38,-6),V(30,16),V(18,30),V(-6,34),V(-26,24),V(-34,4),V(-22,-24),V(2,-34)],true);walkers.push({o:rv,c:loop,t:0,sp:.01,rover:true})}
+
+/* fireflies / data motes */
+const flies=(()=>{const n=500,g=new THREE.BufferGeometry(),p=new Float32Array(n*3);for(let i=0;i<n;i++){const a=R()*6.28,r=Math.sqrt(R())*90;p.set([Math.cos(a)*r,1+R()*9,Math.sin(a)*r],i*3)}g.setAttribute('position',new THREE.BufferAttribute(p,3));
+  const m=new THREE.Points(g,new THREE.PointsMaterial({map:lampTex,color:new THREE.Color(1.2,2.4,1.6),size:.9,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}));scene.add(m);return m})();
+
+/* wildlife that arrives with the canopy: egrets circle, fish leap in the channels (counts keyed to modeled cover) */
+const birdG=(()=>{const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([0,0,.35,0,0,-.3,-1.1,.18,-.12, 0,0,-.3,0,0,.35,1.1,.18,-.12, 0,.02,.45,0,-.06,-.35,0,.1,-.05],3));g.computeVertexNormals();return g})();
+const NB=36,birds=new THREE.InstancedMesh(birdG,new THREE.MeshStandardMaterial({color:'#f6f7f2',side:THREE.DoubleSide,roughness:.6,emissive:'#223',emissiveIntensity:.2}),NB);
+birds.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(birds);
+const birdD=[...Array(NB)].map((_,i)=>({cx:(R()-.5)*90,cz:(R()-.5)*90,r:10+R()*22,h:14+R()*12,sp:(.25+R()*.3)*(i%2?1:-1),ph:R()*6.28,fl:7+R()*3}));
+const NF=18,fish=new THREE.InstancedMesh(new THREE.SphereGeometry(.22,8,6).scale(1,.45,2.4),new THREE.MeshStandardMaterial({color:'#c9d6dc',metalness:.85,roughness:.25}),NF);
+fish.instanceMatrix.setUsage(THREE.DynamicDrawUsage);scene.add(fish);
+const fishD=[...Array(NF)].map(()=>{const s=samples[(R()*samples.length)|0];return{x:s[0],z:s[1],a:R()*6.28,per:3+R()*4,ph:R()*7}});
+const splashG=new THREE.RingGeometry(.2,.32,24).rotateX(-Math.PI/2);
+const splashes=fishD.map(()=>{const m=new THREE.Mesh(splashG,new THREE.MeshBasicMaterial({color:'#dffcff',transparent:true,opacity:0,depthWrite:false}));m.position.y=.2;scene.add(m);return m});
+function wildlife(t){
+  const c=SAP.cur,blue=SAP.SPECIES[SAP.P.species].blue;
+  const nb=Math.round(NB*Math.min(1,Math.max(0,(c.cover-.68)/.25)));
+  for(let i=0;i<NB;i++){const d=birdD[i];if(i>=nb){M.makeScale(0,0,0);birds.setMatrixAt(i,M);continue}
+    const a=t*d.sp*.3+d.ph,x=d.cx+Math.cos(a)*d.r,z=d.cz+Math.sin(a)*d.r,y=d.h+Math.sin(t*.7+d.ph)*1.5,fl=Math.cos(t*d.fl+d.ph);
+    Q.setFromEuler(E.set(Math.sin(t+d.ph)*.08,-a+(d.sp>0?Math.PI:0),fl*.12));M.compose(Pv.set(x,y,z),Q,S.set(1.1,1.1*fl+.15,1.1));birds.setMatrixAt(i,M)}
+  birds.instanceMatrix.needsUpdate=true;
+  const nf=blue?Math.round(NF*Math.min(1,Math.max(0,(c.cover-.5)/.3))):0;
+  fishD.forEach((f,i)=>{const sp=splashes[i];if(i>=nf){M.makeScale(0,0,0);fish.setMatrixAt(i,M);sp.material.opacity=0;return}
+    const k=((t+f.ph)%f.per)/f.per,dur=.16;
+    if(k<dur){const u=k/dur,dx=Math.cos(f.a),dz=Math.sin(f.a);Q.setFromEuler(E.set(-Math.cos(u*Math.PI)*.9,-f.a+HALF,0,'YXZ'));
+      M.compose(Pv.set(f.x+dx*u*2.2,.15+Math.sin(u*Math.PI)*1.3,f.z+dz*u*2.2),Q,S.set(1,1,1));sp.material.opacity=0}
+    else{M.makeScale(0,0,0);const v=(k-dur)/.12;sp.position.set(f.x+Math.cos(f.a)*2.2,.22+tide*0,f.z+Math.sin(f.a)*2.2);sp.scale.setScalar(1+v*5);sp.material.opacity=v<1?(1-v)*.7:0;
+      if(k>.98){const s=samples[(Math.random()*samples.length)|0];f.x=s[0];f.z=s[1];f.a=Math.random()*6.28}}
+    fish.setMatrixAt(i,M)});
+  fish.instanceMatrix.needsUpdate=true;
+}
+let tide=0;const waterMeshes=[];scene.traverse(o=>{if(o.isMesh&&o.material&&o.material.uniforms&&o.material.uniforms.radial)waterMeshes.push([o,o.position.y])});
+
+/* scan pulse: a ring that sweeps out from the core whenever the timeline crosses a milestone year */
+const pulseMat=new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false,uniforms:{r:{value:0},a:{value:0}},
+  vertexShader:`varying vec3 vW;void main(){vec4 w=modelMatrix*vec4(position,1.);vW=w.xyz;gl_Position=projectionMatrix*viewMatrix*w;}`,
+  fragmentShader:`uniform float r,a;varying vec3 vW;void main(){float d=length(vW.xz);float band=exp(-pow((d-r)*.45,2.))+exp(-pow((d-r*.82)*1.2,2.))*.35;float grid=step(.92,fract(atan(vW.z,vW.x)*12.))*.4+1.;gl_FragColor=vec4(vec3(.4,1.8,1.4)*band*grid*a,band*a);}`});
+const pulse=new THREE.Mesh(new THREE.PlaneGeometry(320,320).rotateX(-Math.PI/2),pulseMat);pulse.position.y=.35;pulse.renderOrder=2;scene.add(pulse);
+let pulseT=99,lastMile=0;
+function firePulse(){pulseT=0}
+
+/* camera rig: URL shot params, orbit, and the scroll-driven story */
+const QS=new URLSearchParams(location.search);
+if(QS.get('cam')){const v=QS.get('cam').split(',').map(Number);camera.position.set(v[0],v[1],v[2]);if(v.length>=6)controls.target.set(v[3],v[4],v[5])}
+if(QS.get('orbit')==='0'){controls.autoRotate=false;const c=document.querySelector('[data-l=orbit]');if(c)c.setAttribute('aria-pressed','false')}
+// Story chapters: camera keyframes (pos, target), the year each chapter lands on, and its copy
+const CH=[
+  {p:[0,40,84],t:[0,8,0],y:0,h:'Asimov Center',s:'A restoration plot, a holographic core and a model you can audit. Scroll to grow fifteen years.'},
+  {p:[-30,9,26],t:[-6,2,4],y:1.5,h:'Year 0 · Planting',s:'Propagules go into soft intertidal mud. Most losses happen now; every tree here is modeled, not measured.'},
+  {p:[-66,8.5,-8],t:[-50,.6,-22],y:5,h:'Prop roots',s:'Stilt roots arch out from the trunks. They slow the tide, trap silt, and the ground begins to rise.'},
+  {p:[60,7,10],t:[44,.4,-6],y:8.5,h:'Water & wildlife',s:'Calmer water, cleaner water. Juvenile fish and crabs shelter between roots — watch the channels.'},
+  {p:[-12,30,-48],t:[0,10,0],y:11.5,h:'The core',s:'Data streams carry the model to panels: carbon, canopy, the agent mesh and a globe of real coastlines.'},
+  {p:[26.5,4.6,39.5],t:[19,2.4,30],y:13.5,h:'Field units',s:'Nexus R5 units — illustrative physical-AI agents. In a full Omniverse twin they would be simulated robots; here they walk the paths.'},
+  {p:[0,95,120],t:[0,0,0],y:15,h:'Year 15 · Blue-carbon forest',s:'Canopy closed, birds back. Proof of Tree is how a modeled tree becomes a verified one. Illustrative averages, not site-specific predictions.'}];
+const camPath=new THREE.CatmullRomCurve3(CH.map(c=>new THREE.Vector3(...c.p)),false,'centripetal'),tgtPath=new THREE.CatmullRomCurve3(CH.map(c=>new THREE.Vector3(...c.t)),false,'centripetal');
+let story=QS.get('story')!=null,storyP=+(QS.get('story')||0),storyEase=storyP;
+const storyEl=document.getElementById('story');
+if(storyEl){
+  storyEl.innerHTML=CH.map((c,i)=>`<section class="ch" data-i="${i}"><div class="chcard glass"><div class="cap">Chapter ${i+1} / ${CH.length}</div><h2>${c.h}</h2><p>${c.s}</p></div></section>`).join('')+'<section class="ch end"></section>';
+  storyEl.addEventListener('scroll',()=>{const m=storyEl.scrollHeight-storyEl.clientHeight;storyP=m>0?storyEl.scrollTop/m:0},{passive:true});
+}
+function setStory(on){story=on;document.body.classList.toggle('storymode',on);controls.enabled=!on;if(on){controls.autoRotate=false;if(storyEl)storyEl.scrollTop=storyP*(storyEl.scrollHeight-storyEl.clientHeight)}}
+window.SAPStory=setStory;
+if(story)setStory(true);
+const sv=new THREE.Vector3(),st=new THREE.Vector3();
+function storyFrame(dt){
+  storyEase+=(storyP-storyEase)*Math.min(1,dt*(QS.get('story')!=null?60:3.2));
+  const u=Math.min(.9999,Math.max(0,storyEase));
+  camPath.getPoint(u,sv);tgtPath.getPoint(u,st);camera.position.copy(sv);controls.target.copy(st);camera.lookAt(st);
+  const seg=u*(CH.length-1),i=Math.floor(seg),f=seg-i,a=CH[i],b=CH[Math.min(i+1,CH.length-1)];
+  const y=a.y+(b.y-a.y)*THREE.MathUtils.smoothstep(f,0,1);if(Math.abs(y-SAP.year)>.005)window.setSimYear(y);
+  document.querySelectorAll('#story .ch').forEach(s=>s.classList.toggle('on',+s.dataset.i===Math.round(seg)));
+}
+
+/* post: bloom → cinematic finish (vignette · chromatic aberration that spikes on swivel · grain) → output */
+const composer=new EffectComposer(renderer);composer.addPass(new RenderPass(scene,camera));
+const bloom=new UnrealBloomPass(new THREE.Vector2(256,256),.55,.45,.9);composer.addPass(bloom);
+const finish=new ShaderPass({uniforms:{tDiffuse:{value:null},time:{value:0},ab:{value:.0012},vig:{value:.9}},
+  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform sampler2D tDiffuse;uniform float time,ab,vig;varying vec2 vUv;
+   float h(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233))+time*7.)*43758.5453);}
+   void main(){vec2 d=vUv-.5;float r2=dot(d,d);vec2 o=d*ab*(1.+r2*6.);
+    vec3 c=vec3(texture2D(tDiffuse,vUv+o).r,texture2D(tDiffuse,vUv).g,texture2D(tDiffuse,vUv-o).b);
+    c*=mix(1.,1.-vig*.55,smoothstep(.12,.62,r2*1.6));c+=(h(vUv*vec2(1920.,1080.))-.5)*.022;
+    gl_FragColor=vec4(c,1.);}`});
+composer.addPass(finish);
+composer.addPass(new OutputPass());
+let useBloom=true;
+
+/* layer chips */
+const L={holo:holo,streams:streams,bots:bots,markers:markers};
+document.querySelectorAll('#hudLayers .chip').forEach(ch=>ch.onclick=()=>{const on=ch.getAttribute('aria-pressed')!=='true';ch.setAttribute('aria-pressed',on);const k=ch.dataset.l;
+  if(L[k])L[k].visible=on;else if(k==='story')setStory(on);else if(k==='glow')useBloom=on;else if(k==='orbit')controls.autoRotate=on});
+
+function resize(){const w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);composer.setSize(w,h);bloom.resolution.set(w/2,h/2);camera.aspect=w/h;camera.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+
+/* loop — paused when the view is hidden; bloom auto-drops if FPS sags (HD 620) */
+const clock=new THREE.Clock();let panelT=0,fpsAcc=0,fpsN=0,lowFor=0;
+const tmpV=new THREE.Vector3(),lastDir=new THREE.Vector3(0,0,-1);let swivel=0;
+function loop(){
+  requestAnimationFrame(loop);
+  if(SAP.view!=='immersive'||document.hidden){clock.getDelta();return}
+  const dt=Math.min(.1,clock.getDelta()),t=clock.elapsedTime;U.time.value=t;
+  if(Math.abs(SAP.year-lastY)>.015||SAP.ver!==lastVer){growTrees();lastY=SAP.year;lastVer=SAP.ver}
+  core.userData.rings.children.forEach(r=>r.rotation.z+=r.userData.sp*dt);core.userData.motes.rotation.y+=dt*.15;
+  core.userData.orb.scale.setScalar(1+Math.sin(t*2.2)*.08);coreLight.intensity=55+Math.sin(t*2.2)*10;
+  panels.forEach(p=>p.m.quaternion.copy(camera.quaternion));
+  if(holo.visible&&t-panelT>.12){panelT=t;panels.forEach(p=>{p.draw(p.g,t);p.tex.needsUpdate=true})}
+  markers.children.forEach(m=>{if(m.isSprite&&m.userData.y)m.position.y=m.userData.y+Math.sin(t*1.4+m.userData.ph)*.35});
+  walkers.forEach(w=>{const J=w.o.userData.J;
+    if(w.idle){J.head.rotation.y=Math.sin(t*.6)*.7;J.torso.rotation.y=Math.sin(t*.6)*.15;J.rSh.rotation.z=-.9+Math.sin(t*.8)*.08;J.rEl.rotation.z=1.4;return}
+    w.t=(w.t+w.sp*dt+1)%1;const p=w.c.getPointAt(w.t);const n=w.c.getPointAt((w.t+Math.sign(w.sp)*.004+1)%1);w.o.position.set(p.x,w.rover?0.1:0.2,p.z);w.o.lookAt(tmpV.set(n.x,w.o.position.y,n.z));
+    if(J){const ph=t*5.2+w.ph,s=Math.sin(ph);   // gait within the R5 joint limits (hip ±1.4, knee −2.2..0, elbow 0..2.2)
+      J.lHip.rotation.z=s*.42;J.rHip.rotation.z=-s*.42;
+      J.lKn.rotation.z=-Math.max(0,-Math.cos(ph))*.75;J.rKn.rotation.z=-Math.max(0,Math.cos(ph))*.75;
+      J.lSh.rotation.z=-s*.35;J.rSh.rotation.z=s*.35;J.lEl.rotation.z=.35;J.rEl.rotation.z=.35;
+      J.pelvis.position.y=.72+Math.abs(Math.cos(ph))*.012;J.head.rotation.y=Math.sin(t*.7+w.ph)*.3}});
+  flies.rotation.y+=dt*.01;flies.position.y=Math.sin(t*.4)*.4;
+  tide=Math.sin(t*.22)*.14;waterMeshes.forEach(([m,y0])=>m.position.y=y0+tide);
+  wildlife(t);
+  const mile=Math.floor(SAP.year/3);if(mile!==lastMile){if(mile>lastMile)firePulse();lastMile=mile}
+  pulseT+=dt;pulseMat.uniforms.r.value=pulseT*38;pulseMat.uniforms.a.value=pulseT<4?(1-pulseT/4)*1.2:0;pulse.visible=pulseT<4;
+  if(story)storyFrame(dt);else controls.update();
+  // swivel VFX: aberration follows how fast the view direction is turning
+  camera.getWorldDirection(tmpV);const turn=lastDir.angleTo(tmpV)/Math.max(dt,1e-3);lastDir.copy(tmpV);
+  swivel+=((QS.get('story')!=null?0:Math.min(1,turn*.6))-swivel)*Math.min(1,dt*6);finish.uniforms.ab.value=.0010+swivel*.0055;finish.uniforms.time.value=t;
+  bloom.enabled=useBloom;composer.render();
+  fpsAcc+=dt;fpsN++;if(fpsAcc>2){const fps=fpsN/fpsAcc;fpsAcc=0;fpsN=0;if(useBloom&&fps<26){if(++lowFor>=2){useBloom=false;const c=document.querySelector('[data-l=glow]');c.setAttribute('aria-pressed','false');c.title='Auto-disabled for FPS'}}else lowFor=0}
+}
+window.__glReady=true;document.getElementById('loading').style.display='none';
+growTrees();loop();
+</script>
+</body>
+</html>
