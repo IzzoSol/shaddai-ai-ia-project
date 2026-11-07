@@ -230,7 +230,7 @@
     const root = document.getElementById('garden-root'); if (!root || root.dataset.ready) return; root.dataset.ready = 1;
     root.innerHTML = `
     <div class="pagehead"><div><div class="cap">SAP · the garden game</div><h1>Tend your plot</h1><p class="mut">Match three to water, feed and grow. Clear a level a day to keep your streak. Two to three minutes a round.</p></div>
-      <div class="btns"><button class="btn" id="gNew">▶ Play level <b id="gLvl"></b></button><button class="btn ghost" id="gHow">How it works</button></div></div>
+      <div class="btns"><a class="btn" href="https://asimovrobocat.onrender.com/grove/" style="text-decoration:none;background:linear-gradient(180deg,#E0A040,#b9792a);color:#2a1a08;border-color:#E0A040">Play Asimov Grove (3D farm) →</a><button class="btn" id="gNew">▶ Play level <b id="gLvl"></b></button><button class="btn ghost" id="gHow">How it works</button></div></div>
     <div class="ggrid">
       <div class="glass card gboard"><div id="gHud"></div><div class="gcanvas"><canvas id="gCv" aria-label="Match-3 board"></canvas><div id="gToast" class="gtoast" hidden></div></div>
         <p class="mut xs" style="margin:8px 0 0">Tap a tile, then a neighbour — or swipe. Match 4 → Sprout (clears a line). Match 5 → Lightning Grove (clears a colour).</p></div>
