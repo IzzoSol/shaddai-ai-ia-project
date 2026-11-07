@@ -53,8 +53,17 @@ try {
   console.error('[sap] x402-routes failed to load:', e.message);
 }
 
+try {
+  app.use(require('./market-routes')());
+  console.log('[sap] garden market + Asimov chat + connector mounted (/api/sap/market/*, /api/sap/asimov/chat, /api/sap/v1/*)');
+} catch (e) {
+  console.error('[sap] market-routes failed to load:', e.message);
+}
+
+// Local by default; a host (Render) sets HOST=0.0.0.0 so the platform can reach it.
 const PORT = Number(process.env.PORT || 3000);
-app.listen(PORT, '127.0.0.1', () => {
+const HOST = process.env.HOST || '127.0.0.1';
+app.listen(PORT, HOST, () => {
   console.log(`[sap] listening on http://127.0.0.1:${PORT}`);
   console.log('[sap] try: /api/health  /api/sap/health  /api/sap/policy  /api/sap/hip1/plan');
 });

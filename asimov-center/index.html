@@ -40,6 +40,8 @@ header{position:fixed;inset:0 0 auto 0;height:58px;z-index:40;display:flex;align
 .brand small{display:block;color:var(--mut);letter-spacing:.14em;font-size:10px}
 nav{display:flex;gap:4px;margin:0 auto;background:rgba(10,30,24,.6);border:1px solid var(--line);border-radius:12px;padding:4px}
 nav button i{font-style:normal}
+@media (max-width:1360px){nav button span:not(.sh){display:none}nav button .sh{display:inline}nav button{padding:7px 11px}}
+.mod{max-width:1500px;margin:0 auto;padding:18px}
 nav button .sh{display:none}
 .hstat .back{color:var(--mut);text-decoration:none;border:1px solid var(--line);padding:5px 9px;border-radius:8px;font-size:11px;white-space:nowrap}
 .hstat .back:hover{color:var(--g);border-color:var(--g)}
@@ -250,6 +252,48 @@ svg .ed rect{fill:#04100c}
 body.clean .hud,body.clean header,body.clean #dock,body.clean footer{display:none !important}
 body.clean main{inset:0}
 @media (max-width:900px){.atlas{grid-template-columns:1fr}}
+/* ── module tabs: Garden · Market · Live · Settings ── */
+#v-garden,#v-market,#v-live,#v-settings{background:radial-gradient(1200px 600px at 15% -10%,rgba(77,255,154,.10),transparent 60%),radial-gradient(900px 500px at 100% 10%,rgba(62,240,224,.09),transparent 60%),linear-gradient(rgba(94,255,170,.035) 1px,transparent 1px) 0 0/48px 48px,linear-gradient(90deg,rgba(94,255,170,.035) 1px,transparent 1px) 0 0/48px 48px,var(--bg)}
+.pagehead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.pagehead h1{margin:2px 0;font-size:30px;letter-spacing:.06em;text-shadow:0 0 30px rgba(77,255,154,.35)}
+.mod .card,.mod .glass{animation:rise .55s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@media (prefers-reduced-motion:reduce){.mod .card,.mod .glass{animation:none}}
+.sm{font-size:12.5px}.xs{font-size:11px}.btns{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn.ghost{background:none}
+.ggrid,.mgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px}.lgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:14px}
+.setgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.gboard{display:flex;flex-direction:column;align-items:center}.gcanvas{position:relative}#gCv{display:block;border-radius:16px;background:rgba(3,16,12,.7);box-shadow:0 0 0 1px var(--line2),0 20px 60px rgba(0,0,0,.45),inset 0 0 40px rgba(77,255,154,.06);touch-action:none}
+#gHud{width:100%;max-width:560px}.ghead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.ghead .big small{font-size:13px;color:var(--mut)}
+.gstats{display:flex;gap:14px}.gstats span{display:flex;flex-direction:column;align-items:center;font:600 15px var(--mono)}.gstats small{font:10px var(--sans);color:var(--mut)}
+.goals{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}.goal{flex:1;min-width:120px;display:flex;gap:8px;align-items:center;padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:rgba(6,20,16,.6)}
+.goal .gi{font-size:22px}.goal div{flex:1;position:relative}.goal b{font:600 14px var(--mono)}.goal small{display:block;font-size:10.5px;color:var(--mut)}.goal i{display:block;height:3px;border-radius:3px;background:var(--g);margin-top:4px;transition:width .3s}.goal.done{border-color:var(--g);box-shadow:0 0 18px rgba(77,255,154,.25)}
+.gtoast{position:absolute;left:50%;top:14px;transform:translateX(-50%);padding:8px 14px;border-radius:999px;background:rgba(4,20,15,.92);border:1px solid var(--g);font-size:13px;white-space:nowrap}
+.gmodal{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:rgba(2,8,6,.6);backdrop-filter:blur(4px)}.gmbox{max-width:440px;padding:22px 24px}.gmbox h2{margin:4px 0 8px}
+#gPlot{display:block;width:100%;border-radius:12px}.fair{margin:0;padding-left:18px;font-size:12.5px;color:#cfeee0}.fair li{margin:4px 0}
+.mstats{display:flex;gap:18px;align-items:center}.mstats div{display:flex;flex-direction:column}.mstats b{font:600 20px var(--mono);color:var(--g)}.mstats small{font-size:10.5px;color:var(--mut)}
+.mcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}.mcard{padding:14px;border-color:color-mix(in srgb,var(--rc) 35%,transparent);transition:transform .2s,box-shadow .2s}
+.mcard:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,0,0,.4),0 0 24px color-mix(in srgb,var(--rc) 25%,transparent)}
+.mtop{display:flex;gap:10px;align-items:center;margin-bottom:8px}.mic{font-size:24px;width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:color-mix(in srgb,var(--rc) 14%,transparent)}.mtop small{display:block;font:10px var(--mono);letter-spacing:.08em}
+.supply{height:5px;border-radius:5px;background:#10261f;overflow:hidden;margin:4px 0}.supply i{display:block;height:100%;background:linear-gradient(90deg,var(--rc),#fff)}
+.mrow{display:grid;grid-template-columns:repeat(3,1fr);margin:8px 0}.mrow small{display:block;font-size:10px;color:var(--mut)}.mrow b{font:600 14px var(--mono)}.msp{margin-bottom:8px}
+.irow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}.ilist{display:flex;gap:6px}.ilist input{width:70px;background:#08201a;border:1px solid var(--line2);border-radius:7px;padding:4px 6px}
+.flyw{display:flex;gap:14px;align-items:center}.frow{display:flex;align-items:center;gap:8px;font-size:12.5px;margin:6px 0}.frow i{width:10px;height:10px;border-radius:3px}.frow b{margin-left:auto;font-family:var(--mono)}
+.mnote{position:sticky;top:8px;z-index:5;margin:0 auto 10px;max-width:640px;padding:8px 14px;border-radius:999px;background:rgba(4,20,15,.92);border:1px solid var(--g);font-size:13px;text-align:center;opacity:0;transform:translateY(-6px);transition:.3s;pointer-events:none}.mnote.show{opacity:1;transform:none}
+.lglobe{position:relative;min-height:420px}#lGlobe{width:100%;height:420px;display:block;cursor:pointer}.lleg{position:absolute;left:16px;bottom:12px;display:flex;gap:12px;font-size:11px;color:var(--mut)}.lleg i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.hhead{display:flex;justify-content:space-between;align-items:flex-start}.hhead h2{margin:4px 0 10px;font-size:26px}.hwx{font-size:54px;filter:drop-shadow(0 0 16px rgba(255,255,200,.35))}
+.hstats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.hstats div{padding:10px;border-radius:12px;border:1px solid var(--line);background:rgba(6,20,16,.55)}.hstats small{display:block;font-size:10.5px;color:var(--mut)}.hstats b{display:block;font:600 22px var(--mono);margin:2px 0}.hstats span{font-size:11px;color:var(--mut)}
+.hfact{font-size:13px;color:#cfeee0;border-left:2px solid var(--g);padding-left:10px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}.ccard{all:unset;cursor:pointer;display:block;padding:12px;border-radius:14px;background:var(--panel);border:1px solid var(--line);transition:transform .2s,box-shadow .2s}
+.ccard:hover,.ccard.on{transform:translateY(-3px);border-color:var(--tc);box-shadow:0 0 24px color-mix(in srgb,var(--tc) 30%,transparent)}.ccard b{display:block;font-size:14px}.ccard small{display:block;font-size:11px;color:var(--mut)}
+.ctop{display:flex;justify-content:space-between;align-items:center}.cwx{font-size:24px}.ctag{font:9px var(--mono);letter-spacing:.1em;padding:2px 6px;border-radius:5px;border:1px solid var(--line2);color:var(--mut)}.ctag.mangrove{color:var(--g)}.ctag.urban{color:var(--cy)}
+.ctemp{font:600 26px var(--mono);color:var(--tc);margin:6px 0 2px}.ctemp small{font:11px var(--sans);color:var(--mut);margin-left:6px}.caq{font-size:11px;color:var(--mut);display:flex;align-items:center;gap:6px}.caq i{width:8px;height:8px;border-radius:50%}
+.lsearch{position:relative;display:flex;gap:6px}.lsearch input{background:#08201a;border:1px solid var(--line2);border-radius:10px;padding:8px 11px;width:240px}.lres{position:absolute;top:100%;left:0;right:0;z-index:6;display:grid;margin-top:4px;background:var(--panel2);border-radius:10px}.lres button{all:unset;cursor:pointer;padding:8px 10px;font-size:13px}.lres button:hover{color:var(--g)}
+.uprow{display:grid;grid-template-columns:14px 200px 1fr 110px 50px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12.5px}.ubars{display:flex;gap:2px;align-items:flex-end;height:22px}.ubars i{flex:1;max-width:8px;border-radius:2px}
+.srow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}.fld{display:grid;gap:4px;margin:10px 0;font-size:12px;color:var(--mut)}.fld input{background:#08201a;border:1px solid var(--line2);border-radius:9px;padding:8px 10px;color:var(--tx)}
+.tog{display:flex;gap:12px;align-items:center;padding:9px 0;cursor:pointer}.tog input{display:none}.tog .sw{width:40px;height:22px;border-radius:22px;background:#173329;position:relative;flex:none;transition:.2s}.tog .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#cfeee0;transition:.2s}.tog input:checked+.sw{background:var(--g2)}.tog input:checked+.sw::after{left:21px}.tog small{display:block;font-size:11px;color:var(--mut)}
+.probe{font:11px var(--mono);white-space:pre-wrap;background:#020806;border:1px solid var(--line);border-radius:10px;padding:10px;color:#9fd8bd}
+body.lowgpu .glass{backdrop-filter:none}
+@media (max-width:1000px){.ggrid,.mgrid,.lgrid{grid-template-columns:1fr}.hstats{grid-template-columns:repeat(2,1fr)}.uprow{grid-template-columns:14px 1fr 80px}.uprow .ubars,.uprow .mut{display:none}}
 footer{position:fixed;right:12px;bottom:calc(var(--dock) + 6px);z-index:20;font-size:10.5px;color:var(--amber);opacity:.75;pointer-events:none}
 body:not([data-dock="1"]) footer{bottom:8px}
 
@@ -293,8 +337,12 @@ body:not([data-dock="1"]) footer{bottom:8px}
   <nav role="tablist" aria-label="Views">
     <button role="tab" data-v="immersive" aria-selected="true"><i>◈</i> <span>Immersive</span><span class="sh">3D</span></button>
     <button role="tab" data-v="sim" aria-selected="false"><i>▤</i> <span>Simulation</span><span class="sh">Sim</span></button>
+    <button role="tab" data-v="garden" aria-selected="false"><i>✿</i> <span>Garden</span><span class="sh">Play</span></button>
+    <button role="tab" data-v="market" aria-selected="false"><i>⇄</i> <span>Market</span><span class="sh">Market</span></button>
+    <button role="tab" data-v="live" aria-selected="false"><i>◍</i> <span>Live</span><span class="sh">Live</span></button>
     <button role="tab" data-v="status" aria-selected="false"><i>◉</i> <span>Mission Control</span><span class="sh">Status</span></button>
     <button role="tab" data-v="diagrams" aria-selected="false"><i>⌗</i> <span>Diagrams</span><span class="sh">Maps</span></button>
+    <button role="tab" data-v="settings" aria-selected="false" title="Settings &amp; APIs"><i>⚙</i><span class="sh">Set</span></button>
   </nav>
   <div class="hstat"><a class="back" href="https://asimovrobocat.onrender.com/" title="Back to the $ASIMOV site">← $ASIMOV site</a><span>SIM <b id="hYear" class="g">YEAR 0.0</b></span><span><span class="dot off" id="hDot"></span> <span id="hRun">PAUSED</span></span></div>
 </header>
@@ -452,7 +500,7 @@ body:not([data-dock="1"]) footer{bottom:8px}
         <div id="insight" style="font-size:13px"></div>
       </div>
       <div class="glass card">
-        <h3>Verification · Proof of Tree <span class="pill am">NOT LINKED</span></h3>
+        <h3>Verification · proof of planting <span class="pill am">NOT LINKED</span></h3>
         <div style="font-size:12.5px">Treegens <b>Proof of Tree</b> is the verification leg: geo-tagged planting evidence → on-chain claim (<span class="mono">TreeNFT.sol</span>).</div>
         <div class="gate" style="margin-top:6px"><span class="dot"></span>Plot<span class="n mono" id="potPlot">—</span></div>
         <div class="mut" style="font-size:11px" id="potMethod"></div>
@@ -689,6 +737,11 @@ body:not([data-dock="1"]) footer{bottom:8px}
   <p class="caveat" style="margin-top:20px">All ecological figures in this project are illustrative averages, not site-specific predictions.</p>
  </div>
 </section>
+<!-- ═════════════ GARDEN · MARKET · LIVE · SETTINGS (modules in js/) ═════════════ -->
+<section class="view scroll" id="v-garden" aria-label="SAP garden game"><div id="garden-root" class="mod"></div></section>
+<section class="view scroll" id="v-market" aria-label="Garden marketplace"><div id="market-root" class="mod"></div></section>
+<section class="view scroll" id="v-live" aria-label="Live cities and uptime"><div id="live-root" class="mod"></div></section>
+<section class="view scroll" id="v-settings" aria-label="Settings and APIs"><div id="settings-root" class="mod"></div></section>
 </main>
 
 <!-- shared timeline dock -->
@@ -775,6 +828,7 @@ function go(v){
   document.body.dataset.dock=(v==='immersive'||v==='sim')?'1':'0';
   if(location.hash!=='#'+v)history.replaceState(null,'','#'+v);
   if(v==='sim')requestAnimationFrame(()=>{sizeCanvases();drawAll(true)});
+  window.dispatchEvent(new CustomEvent('sapview',{detail:v}));
   window.dispatchEvent(new Event('resize'));
 }
 $$('nav button').forEach(b=>b.onclick=()=>go(b.dataset.v));
@@ -1161,6 +1215,7 @@ function runActions(text){
   });
   return done;
 }
+function agentContext(){const c=SAP.cur,s=SPECIES[P.species],site=SITES.find(x=>x.k===P.site);return `view ${SAP.view}; species ${s.name}; year ${c.y.toFixed(1)}/15; trees alive ${Math.round(c.alive)}; canopy ${Math.round(c.cover*100)}%; CO2e ${Math.round(c.total)} t; plot ${P.plot} ${P.ha} ha; site template ${site.n} (${site.c}).`}
 const stripTags=t=>t.replace(/\[\[[^\]]*\]\]/g,'').trim();
 async function askOllama(q,bubble){
   AG.ctl=new AbortController();
@@ -1190,6 +1245,10 @@ $('#chatForm').onsubmit=async e=>{e.preventDefault();const q=$('#chatIn').value.
     try{const out=await askOllama(q,m);const did=runActions(out);m.innerHTML=esc(stripTags(out)).replace(/\n/g,'<br>')+`<time>${now()} · ${esc($('#ollamaModel').value||AG.model)}${did.length?' · did: '+esc(did.join(', ')):''}</time>`}
     catch(err){if(err.name==='AbortError'){m.innerHTML+=`<time>${now()} · stopped</time>`}else{const tags=scriptedActions(q),did=runActions(tags);m.innerHTML=scripted(q)+`<time>${now()} · scripted (Ollama unreachable)${did.length?' · did: '+did.join(', '):''}</time>`;detectOllama()}}
     finally{$('#chatStop').hidden=true;const c=m.querySelector('.caret');c&&c.remove()}
+  }else if(window.SAPCFG&&SAPCFG.hasCloud()){
+    const m=say('<span class="mut">asking…</span>');
+    try{const r=await SAPCFG.cloudAsk(q,AG.hist,agentContext());AG.hist.push({role:'user',content:q},{role:'assistant',content:r.text});const did=runActions(r.text);m.innerHTML=esc(stripTags(r.text)).replace(/\n/g,'<br>')+`<time>${now()} · ${esc(r.via)}${did.length?' · did: '+esc(did.join(', ')):''}</time>`}
+    catch(err){const tags=scriptedActions(q),did=runActions(tags);m.innerHTML=scripted(q)+`<time>${now()} · built-in guide (${esc(err.message)})${did.length?' · did: '+did.join(', '):''}</time>`}
   }else setTimeout(()=>{const tags=scriptedActions(q),did=runActions(tags);const m=say(scripted(q));if(did.length)m.querySelector('time').textContent+=' · did: '+did.join(', ')},220);
 };
 $('#chatStop').onclick=()=>AG.ctl&&AG.ctl.abort();
@@ -1332,7 +1391,7 @@ if(Q.get('clean')==='1')document.body.classList.add('clean');
 rebuild();bindInputs();buildDiagrams();siteCard();setYear(Q.get('year')?+Q.get('year'):0);loadLand();
 say(`Welcome, Explorer. I'm <b>Asimov</b>, your guide to this canopy twin. It projects ${fmt(P.trees)} ${SPECIES[P.species].blue?'mangroves':'trees'} on ${P.ha} ha over 15 years — press ▶ below or drag the timeline.`);
 say(`Everything you see is an <b>illustrative average, not a site-specific prediction</b>. The formulas are open — ask “how does the model work?”`,false,'impact');
-const start=Q.get('view')||(location.hash||'#immersive').slice(1);go(['immersive','sim','status','diagrams'].includes(start)?start:'immersive');
+const start=Q.get('view')||(location.hash||'#immersive').slice(1);go(['immersive','sim','garden','market','live','status','diagrams','settings'].includes(start)?start:'immersive');
 requestAnimationFrame(tick);
 setTimeout(()=>{if(!window.__glReady){$('#loading').style.display='none';$('#glFail').style.display='grid'}},15000);
 </script>
@@ -1800,5 +1859,9 @@ function loop(){
 window.__glReady=true;document.getElementById('loading').style.display='none';
 growTrees();loop();
 </script>
+<script src="js/sap-settings.js"></script>
+<script src="js/sap-garden.js"></script>
+<script src="js/sap-market.js"></script>
+<script src="js/sap-live.js"></script>
 </body>
 </html>
